@@ -2,11 +2,15 @@ import OpenAI from 'openai'
 
 const openAIKey = process.env.OPENAI_API_KEY
 
+console.log('openAIKey:', openAIKey)
+
 const openai = new OpenAI({
   apiKey: openAIKey,
 })
 
 export async function generateSuggestion(context, depList) {
+  console.log('Generating suggestions:')
+
   const completion = await openai.chat.completions.create({
     messages: [
       {

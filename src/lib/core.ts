@@ -91,12 +91,12 @@ export async function handlePullRequestOpened({ payload, octokit }) {
       let lastPart = file.filename.split('/').pop()
       let [filename, extension] = lastPart.split('.')
 
-      return axios
+      axios
         .get(rawUrl)
         .then(async (response) => {
+          console.log('axios response:')
           if (response.status === 200) {
             const fileContents = response.data
-            console.log('fileContents:')
             console.log(fileContents)
 
             suggestions = await generateSuggestion(fileContents, depList)
