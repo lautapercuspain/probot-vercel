@@ -2,7 +2,7 @@ import OpenAI from 'openai'
 
 const openAIKey = process.env.OPENAI_API_KEY
 
-console.log('openAIKey:', openAIKey)
+// console.log('openAIKey:', openAIKey)
 
 const openai = new OpenAI({
   apiKey: openAIKey,
@@ -53,9 +53,6 @@ export async function generateSuggestion(context, depList) {
 
 // These are the dependencies for this file.
 export const getChangedFiles = async ({ owner, repo, pullRequestNumber, octokit }) => {
-  // console.log('owner:', owner)
-  // console.log('repo:', repo)
-  // console.log('pullRequestNumber:', pullRequestNumber)
   try {
     const response = await octokit.rest.pulls.listFiles({
       owner,
