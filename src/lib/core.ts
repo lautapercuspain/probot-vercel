@@ -1,5 +1,5 @@
 import { generateSuggestion, getChangedFiles } from './utils'
-import 'isomorphic-fetch'
+const fetch = require('node-fetch')
 // import { Octokit } from '@octokit/core'
 // import { createAppAuth } from '@octokit/auth-app'
 const messageForNewPRs = "We're analyzing the contents of the PR's files in order to create unit tests for it."
@@ -56,7 +56,7 @@ export async function handlePullRequestOpened({ payload, octokit }) {
   // console.dir(payload);
 
   //Get the contents of package json.
-  octokit.rest.repos
+  await octokit.rest.repos
     .getContent({
       owner,
       repo,
@@ -64,7 +64,7 @@ export async function handlePullRequestOpened({ payload, octokit }) {
     })
     .then((response) => {
       const content = Buffer.from(response.data.content, 'base64').toString('utf-8')
-      console.log('content:', content)
+      // console.log('content:', content)
 
       // Parse the package.json content
       const dependencies = JSON.parse(content).devDependencies
@@ -75,24 +75,28 @@ export async function handlePullRequestOpened({ payload, octokit }) {
       console.error(error)
     })
 
-  return getChangedFiles({ owner, repo, pullRequestNumber, octokit }).then(async (changedFiles) => {
+  await getChangedFiles({ owner, repo, pullRequestNumber, octokit }).then(async (changedFiles) => {
     // console.log('Changed files:')
     changedFiles.forEach(async (file) => {
-      console.info('File:', file.filename)
-      console.log('Status:', file.status)
-      console.log('Additions:', file.additions)
-      console.log('Deletions:', file.deletions)
-      console.log('Changes:', file.changes)
-      console.log('Blob URL:', file.blobUrl)
+      // console.info('File:', file.filename)
+      // console.log('Status:', file.status)
+      // console.log('Additions:', file.additions)
+      // console.log('Deletions:', file.deletions)
+      // console.log('Changes:', file.changes)
+      // console.log('Blob URL:', file.blobUrl)
       const rawUrl = file.blobUrl.replace('/blob/', '/raw/')
       console.log('rawUrl:', rawUrl)
 
       let relativePath = file.filename.split('/').slice(0, -1).join('/')
       let lastPart = file.filename.split('/').pop()
       let [filename, extension] = lastPart.split('.')
+
       const response = await fetch(rawUrl)
+      if (!response.ok) {
+        throw new Error('Error fetching data from the API')
+      }
       const fileContents = await response.text()
-      console.log('fileContents:', fileContents)
+      console.log('File Contents:', fileContents)
 
       suggestions = await generateSuggestion(fileContents, depList)
       console.log('suggestions', suggestions)
