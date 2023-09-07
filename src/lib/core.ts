@@ -91,12 +91,26 @@ export async function handlePullRequestOpened({ payload, octokit }) {
       let lastPart = file.filename.split('/').pop()
       let [filename, extension] = lastPart.split('.')
       console.log('about to fetch:')
-      const response = await fetch(rawUrl)
-      if (!response.ok) {
-        throw new Error('Error fetching data from the API')
-      }
-      const fileContents = await response.text()
-      console.log('File Contents:', fileContents)
+      // const response = await fetch(rawUrl)
+      // if (!response.ok) {
+      //   throw new Error('Error fetching data from the API')
+      // }
+      // const fileContents = await response.text()
+      const fileContents = `import React, { useState, useEffect } from "react";
+      const Timer = () => {
+        const [seconds, setSeconds] = useState(0);
+      
+        useEffect(() => {
+          const interval = setInterval(() => {
+            setSeconds((seconds) => seconds + 1);
+          }, 1000);
+          return () => clearInterval(interval);
+        }, []);
+      
+        return <p>{Timer: seconds}</p>;
+      };
+      
+      export default Timer;`
 
       suggestions = await generateSuggestion(fileContents, depList)
       console.log('suggestions', suggestions)
