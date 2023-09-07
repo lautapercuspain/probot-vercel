@@ -1,7 +1,7 @@
 import { generateSuggestion, getChangedFiles } from './utils'
 import axios from 'axios'
-import { Octokit } from '@octokit/core'
-import { createAppAuth } from '@octokit/auth-app'
+// import { Octokit } from '@octokit/core'
+// import { createAppAuth } from '@octokit/auth-app'
 const messageForNewPRs = "We're analyzing the contents of the PR's files in order to create unit tests for it."
 
 export async function handlePullRequestOpened({ payload, octokit }) {
@@ -33,10 +33,14 @@ export async function handlePullRequestOpened({ payload, octokit }) {
   // console.log('appAuthentication:', appAuthentication)
 
   //   console.log(`APP ID, ${process.env.APP_ID}`)
+  let suggestions
+  let prediction
+  let depList
+
   const owner = payload.repository.owner.login
   const repo = payload.repository.name
   const pullRequestNumber = payload.pull_request.number
-  const res = await octokit
+  await octokit
     .request(`POST /repos/${owner}/${repo}/issues/${pullRequestNumber}/comments`, {
       body: messageForNewPRs,
       headers: {
@@ -46,14 +50,10 @@ export async function handlePullRequestOpened({ payload, octokit }) {
       },
     })
     .then((data) => console.log(data))
-  console.log('res:', res)
+  // console.log('res:', res)
 
   console.log(`Branch Name:`, payload.pull_request.head.ref)
   // console.dir(payload);
-
-  let suggestions
-  let prediction
-  let depList
 
   //Get the contents of package json.
   octokit.rest.repos
@@ -64,6 +64,7 @@ export async function handlePullRequestOpened({ payload, octokit }) {
     })
     .then((response) => {
       const content = Buffer.from(response.data.content, 'base64').toString('utf-8')
+      console.log('content:', content)
 
       // Parse the package.json content
       const dependencies = JSON.parse(content).devDependencies
@@ -74,7 +75,7 @@ export async function handlePullRequestOpened({ payload, octokit }) {
       console.error(error)
     })
 
-  getChangedFiles({ owner, repo, pullRequestNumber, octokit }).then(async (changedFiles) => {
+  return getChangedFiles({ owner, repo, pullRequestNumber, octokit }).then(async (changedFiles) => {
     // console.log('Changed files:')
     changedFiles.forEach((file) => {
       console.info('File:', file.filename)
@@ -84,7 +85,7 @@ export async function handlePullRequestOpened({ payload, octokit }) {
       console.log('Changes:', file.changes)
       console.log('Blob URL:', file.blobUrl)
       const rawUrl = file.blobUrl.replace('/blob/', '/raw/')
-      // console.log('rawUrl:', rawUrl)
+      console.log('rawUrl:', rawUrl)
 
       let relativePath = file.filename.split('/').slice(0, -1).join('/')
       let lastPart = file.filename.split('/').pop()
@@ -96,21 +97,19 @@ export async function handlePullRequestOpened({ payload, octokit }) {
           if (response.status === 200) {
             const fileContents = response.data
             console.log('fileContents:')
-            console.info(fileContents)
+            console.log(fileContents)
 
             suggestions = await generateSuggestion(fileContents, depList)
-            console.info(suggestions)
+            console.log('suggestions', suggestions)
             prediction = suggestions[0].message.content
             console.log('Prediction: ', prediction)
             if (prediction.length > 0) {
               try {
-                await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
-                  owner: payload.repository.owner.login,
-                  repo: payload.repository.name,
-                  issue_number: payload.pull_request.number,
+                await octokit.request(`POST /repos/${owner}/${repo}/issues/${pullRequestNumber}/comments`, {
                   body: `A test has been generated for the filename: ${file.filename}`,
                   headers: {
                     'x-github-api-version': '2022-11-28',
+                    Accept: 'application/vnd.github+json',
                   },
                 })
               } catch (error) {
