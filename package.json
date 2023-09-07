@@ -14,9 +14,9 @@
   "dependencies": {
     "@octokit/auth-app": "^6.0.0",
     "@octokit/core": "^3.6.0",
-    "axios": "^1.5.0",
     "eslint": "^8.48.0",
     "eslint-config-probot": "^0.1.0",
+    "node-fetch": "^3.3.2",
     "openai": "4.4.0",
     "prettier": "^3.0.3",
     "probot": "^12.3.0"
