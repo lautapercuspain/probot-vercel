@@ -10,6 +10,8 @@ import type { Probot, Context } from 'probot'
  */
 export default (app: Probot) => {
   app.on(['pull_request.opened', 'pull_request.reopened'], async (context: Context) => {
+    console.log('a ver')
+
     return context.octokit.issues.createComment(context.issue({ body: 'Hello, World!' }))
   })
 
