@@ -4,33 +4,33 @@ import { Octokit } from '@octokit/core'
 import { createAppAuth } from '@octokit/auth-app'
 const messageForNewPRs = "We're analyzing the contents of the PR's files in order to create unit tests for it."
 
-export async function handlePullRequestOpened({ payload }) {
+export async function handlePullRequestOpened({ payload, octokit }) {
   //   console.log(`Received a pull request event for #${payload.pull_request.head.ref}`)
   //   const ghTotken = process.env.PATGH || ''
   //   const installationId = payload.installation.id
   //   clientId: process.env.CLIENT_ID,
   //   clientSecret: process.env.CLIENT_SECRET,
-  const octokit = new Octokit({
-    authStrategy: createAppAuth,
-    auth: {
-      installationId: payload.installation.id,
-      appId: process.env.APP_ID,
-      privateKey: process.env.PRIVATE_KEY,
-      clientId: process.env.CLIENT_ID,
-      clientSecret: process.env.CLIENT_SECRET,
-    },
-  })
+  // const octokit = new Octokit({
+  //   authStrategy: createAppAuth,
+  //   auth: {
+  //     installationId: payload.installation.id,
+  //     appId: process.env.APP_ID,
+  //     privateKey: process.env.PRIVATE_KEY,
+  //     clientId: process.env.CLIENT_ID,
+  //     clientSecret: process.env.CLIENT_SECRET,
+  //   },
+  // })
 
-  const auth = createAppAuth({
-    appId: process.env.APP_ID,
-    privateKey: process.env.PRIVATE_KEY,
-    clientId: process.env.CLIENT_ID,
-    clientSecret: process.env.CLIENT_SECRET,
-  })
+  // const auth = createAppAuth({
+  //   appId: process.env.APP_ID,
+  //   privateKey: process.env.PRIVATE_KEY,
+  //   clientId: process.env.CLIENT_ID,
+  //   clientSecret: process.env.CLIENT_SECRET,
+  // })
 
-  // Retrieve JSON Web Token (JWT) to authenticate as app
-  const appAuthentication = await auth({ type: 'app' })
-  console.log('appAuthentication:', appAuthentication)
+  // // Retrieve JSON Web Token (JWT) to authenticate as app
+  // const appAuthentication = await auth({ type: 'app' })
+  // console.log('appAuthentication:', appAuthentication)
 
   //   console.log(`APP ID, ${process.env.APP_ID}`)
   const owner = payload.repository.owner.login
@@ -42,13 +42,13 @@ export async function handlePullRequestOpened({ payload }) {
       headers: {
         'x-github-api-version': '2022-11-28',
         Accept: 'application/vnd.github+json',
-        Authorization: `Bearer ${appAuthentication.token}`,
+        // Authorization: `Bearer ${appAuthentication.token}`,
       },
     })
     .then((data) => console.log(data))
   console.log('res:', res)
 
-  // console.log(`Branch Name:`, payload.pull_request.head.ref)
+  console.log(`Branch Name:`, payload.pull_request.head.ref)
   // console.dir(payload);
 
   let suggestions
@@ -56,23 +56,23 @@ export async function handlePullRequestOpened({ payload }) {
   let depList
 
   //Get the contents of package json.
-  //   octokit.rest.repos
-  //     .getContent({
-  //       owner,
-  //       repo,
-  //       path: 'package.json',
-  //     })
-  //     .then((response) => {
-  //       const content = Buffer.from(response.data.content, 'base64').toString('utf-8')
+  octokit.rest.repos
+    .getContent({
+      owner,
+      repo,
+      path: 'package.json',
+    })
+    .then((response) => {
+      const content = Buffer.from(response.data.content, 'base64').toString('utf-8')
 
-  //       // Parse the package.json content
-  //       const dependencies = JSON.parse(content).devDependencies
-  //       //Get the keys, A.k.A: The lib names.
-  //       depList = Object.keys(dependencies).join(', ')
-  //     })
-  //     .catch((error) => {
-  //       console.error(error)
-  //     })
+      // Parse the package.json content
+      const dependencies = JSON.parse(content).devDependencies
+      //Get the keys, A.k.A: The lib names.
+      depList = Object.keys(dependencies).join(', ')
+    })
+    .catch((error) => {
+      console.error(error)
+    })
 
   getChangedFiles({ owner, repo, pullRequestNumber, octokit }).then(async (changedFiles) => {
     // console.log('Changed files:')

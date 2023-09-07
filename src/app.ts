@@ -12,6 +12,7 @@ export default (app: Probot) => {
 
     return handlePullRequestOpened({
       payload: context.payload,
+      octokit: context.octokit,
     })
     // return context.octokit.issues.createComment(context.issue({ body: 'Hello, World!' }))
   })
