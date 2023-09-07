@@ -1,5 +1,5 @@
 import { generateSuggestion, getChangedFiles } from './utils'
-import fetch from 'node-fetch'
+import 'isomorphic-fetch'
 // import { Octokit } from '@octokit/core'
 // import { createAppAuth } from '@octokit/auth-app'
 const messageForNewPRs = "We're analyzing the contents of the PR's files in order to create unit tests for it."
