@@ -1,5 +1,5 @@
 import { generateSuggestion, getChangedFiles } from './utils'
-const fetch = require('node-fetch')
+
 // import { Octokit } from '@octokit/core'
 // import { createAppAuth } from '@octokit/auth-app'
 const messageForNewPRs = "We're analyzing the contents of the PR's files in order to create unit tests for it."
@@ -90,7 +90,7 @@ export async function handlePullRequestOpened({ payload, octokit }) {
       let relativePath = file.filename.split('/').slice(0, -1).join('/')
       let lastPart = file.filename.split('/').pop()
       let [filename, extension] = lastPart.split('.')
-
+      console.log('about to fetch:')
       const response = await fetch(rawUrl)
       if (!response.ok) {
         throw new Error('Error fetching data from the API')
