@@ -11,7 +11,7 @@ const openai = new OpenAI({
 export async function generateSuggestion(context, depList) {
   console.log('Generating suggestions:')
 
-  const completion = await openai.chat.completions.create({
+  const payload = {
     messages: [
       {
         role: 'system',
@@ -47,8 +47,20 @@ export async function generateSuggestion(context, depList) {
     ],
     model: 'gpt-4',
     temperature: 0.9,
+  }
+
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${openAIKey ?? ''}`,
+    },
+    method: 'POST',
+    body: JSON.stringify(payload),
   })
-  return completion.choices
+
+  const data = await res.json()
+
+  return data.choices
 }
 
 // These are the dependencies for this file.
