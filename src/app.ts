@@ -15,31 +15,31 @@ import { handlePullRequestOpened } from './lib/core'
  * @param {import('probot').Probot} app
  */
 export default (app: Probot, { getRouter }: ApplicationFunctionOptions) => {
-  if (!getRouter) return
-  const router = getRouter('/')
-  //Middlewares
-  // router.use(bodyParser.urlencoded({ extended: true }))
-  router.use(express.json())
-  router.use(express.urlencoded())
-  // Add a new route
-  router.post('/api/generate', async (req, res) => {
-    const { payload } = req.body
+  if (getRouter) {
+    const router = getRouter('/')
+    //Middlewares
+    // router.use(bodyParser.urlencoded({ extended: true }))
+    router.use(express.json())
+    router.use(express.urlencoded())
+    // Add a new route
+    router.post('/api/generate', async (req, res) => {
+      const { payload } = req.body
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${openAIKey ?? ''}`,
-      },
-      method: 'POST',
-      body: JSON.stringify(payload),
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${openAIKey ?? ''}`,
+        },
+        method: 'POST',
+        body: JSON.stringify(payload),
+      })
+
+      const data = await response.json()
+      // console.log('data:', data)
+
+      return res.send(data.choices[0].message.content)
     })
-
-    const data = await response.json()
-    // console.log('data:', data)
-
-    return res.send(data.choices[0].message.content)
-  })
-
+  }
   app.on(['pull_request.opened', 'pull_request.reopened'], async (context: Context) => {
     return handlePullRequestOpened({
       payload: context.payload,
