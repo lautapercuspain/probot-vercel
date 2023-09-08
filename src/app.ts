@@ -1,4 +1,4 @@
-import type { Probot, Context } from 'probot'
+import type { Probot, Context, ApplicationFunctionOptions } from 'probot'
 import express from 'express'
 import bodyParser from 'body-parser'
 if (!process.env.OPENAI_API_KEY) {
@@ -14,8 +14,8 @@ import { handlePullRequestOpened } from './lib/core'
 /**
  * @param {import('probot').Probot} app
  */
-export default (app: Probot, { getRouter }: { getRouter: any }) => {
-  console.log('getRouter', getRouter)
+export default (app: Probot, { getRouter }: ApplicationFunctionOptions) => {
+  if (!getRouter) return
   const router = getRouter('/')
   //Middlewares
   // router.use(bodyParser.urlencoded({ extended: true }))
