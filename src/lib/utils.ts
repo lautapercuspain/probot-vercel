@@ -59,8 +59,9 @@ export async function generateSuggestion(context, depList) {
   })
 
   const data = await res.json()
-
-  return data.choices
+  return new Response(data.choices, {
+    headers: { 'Content-Type': 'application/json; charset=utf-8' },
+  })
 }
 
 // These are the dependencies for this file.
