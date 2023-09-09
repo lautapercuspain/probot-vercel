@@ -62,13 +62,13 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
       const [fname, ext] = lastPart.split('.')
       filename = fname
       extension = ext
-    })
 
-    fileRes = await fetch(rawUrl)
-    if (!fileRes.ok) {
-      throw new Error('Error fetching data from the API')
-    }
-    fileContents = await fileRes.text()
+      fileRes = await fetch(rawUrl)
+      if (!fileRes.ok) {
+        throw new Error('Error fetching data from the API')
+      }
+      fileContents = await fileRes.text()
+    })
     console.log('File contents :', fileContents)
 
     const payloadOpenAI: OpenAI.Chat.ChatCompletionCreateParams = {
