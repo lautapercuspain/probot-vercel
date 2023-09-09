@@ -27,7 +27,7 @@ export const getChangedFiles = async ({ owner, repo, pullRequestNumber, octokit 
   }
 }
 
-export const getOpenAIPayload = async (depList, fileContents) => {
+export const getOpenAIPayload = (depList, fileContents) => {
   const payloadOpenAI: OpenAI.Chat.ChatCompletionCreateParams = {
     messages: [
       {
