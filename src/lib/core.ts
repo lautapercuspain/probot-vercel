@@ -9,7 +9,7 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
   // let fileRes
   let rawUrl: string
   let relativePath: string
-  let fileContents: string
+  // let fileContents: string
   let filename: string
   let extension: string
   let depList = 'Jest, React Testing Library'
@@ -96,7 +96,7 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
         {
           role: 'user',
           content: `
-              Create a unit test, using the following libs: ${depList}, for the following url: ${rawUrl}.
+              Create a unit test using the following libs: ${depList}, for the literal contents of the following url: ${rawUrl}.
               But don't add explanations or triple backtick to the output.`,
         },
       ],
