@@ -3,7 +3,7 @@ import { getChangedFiles } from './utils'
 
 // import { Octokit } from '@octokit/core'
 // import { createAppAuth } from '@octokit/auth-app'
-const messageForNewPRs = "We're analyzing the file contents."
+const messageForNewPRs = "We're analyzing the file."
 
 export async function handlePullRequestOpened({ payload, octokit, openai }) {
   // let fileRes
