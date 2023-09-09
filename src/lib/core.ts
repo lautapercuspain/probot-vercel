@@ -34,10 +34,11 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
   // console.log('appAuthentication:', appAuthentication)
 
   // let path
-  let relativePath
-  let fileContents
-  let filename
-  let extension
+  let rawUrl: string
+  let relativePath: string
+  let fileContents: string
+  let filename: string
+  let extension: string
   let depList = 'Jest, React Testing Library'
 
   const owner = payload.repository.owner.login
@@ -87,28 +88,29 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
       // console.log('Deletions:', file.deletions)
       // console.log('Changes:', file.changes)
       // console.log('Blob URL:', file.blobUrl)
-      const rawUrl = file.blobUrl.replace('/blob/', '/raw/')
+      rawUrl = file.blobUrl.replace('/blob/', '/raw/')
       console.log('rawUrl:', rawUrl)
 
       relativePath = file.filename.split('/').slice(0, -1).join('/')
-      let lastPart = file.filename.split('/').pop()
+      const lastPart = file.filename.split('/').pop()
       const [fname, ext] = lastPart.split('.')
       filename = fname
       extension = ext
-      const fileRes = await fetch(rawUrl)
-      if (!fileRes.ok) {
-        throw new Error('Error fetching data from the API')
-      }
-      fileContents = await fileRes.text()
-      console.log('File contents :', fileContents)
     })
+
+    const fileRes = await fetch(rawUrl)
+    if (!fileRes.ok) {
+      throw new Error('Error fetching data from the API')
+    }
+    fileContents = await fileRes.text()
+    console.log('File contents :', fileContents)
 
     const payloadOpenAI: OpenAI.Chat.ChatCompletionCreateParams = {
       messages: [
         {
           role: 'system',
           content: `You are an expert software agent in unit test.
-            Please follow these guilines:
+            Follow these guidelines to the letter:
             - Always pass all the props that the component in expecting in all tests.
             - Consistently presume that the component to be tested resides within the identical directory as the generated test.
             - Don't use getByTestId if the passed component don't support it.
@@ -143,7 +145,7 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
 
     const completion: OpenAI.Chat.ChatCompletion = await openai.chat.completions.create(payloadOpenAI)
 
-    console.log('completion:', completion)
+    // console.log('completion:', completion)
 
     if (completion) {
       try {
