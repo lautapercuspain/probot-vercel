@@ -36,6 +36,7 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
   // let path
   let relativePath
   let fileContents
+  let rawUrl
   let filename
   let extension
   let depList = 'Jest, React Testing Library'
@@ -87,7 +88,7 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
       // console.log('Deletions:', file.deletions)
       // console.log('Changes:', file.changes)
       // console.log('Blob URL:', file.blobUrl)
-      const rawUrl = file.blobUrl.replace('/blob/', '/raw/')
+      rawUrl = file.blobUrl.replace('/blob/', '/raw/')
       console.log('rawUrl:', rawUrl)
 
       relativePath = file.filename.split('/').slice(0, -1).join('/')
@@ -95,13 +96,13 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
       const [fname, ext] = lastPart.split('.')
       filename = fname
       extension = ext
-      const fileRes = await fetch(rawUrl)
-      if (!fileRes.ok) {
-        throw new Error('Error fetching data from the API')
-      }
-      fileContents = await fileRes.text()
-      console.log('File contents :', fileContents)
     })
+    const fileRes = await fetch(rawUrl)
+    if (!fileRes.ok) {
+      throw new Error('Error fetching data from the API')
+    }
+    fileContents = await fileRes.text()
+    console.log('File contents :', fileContents)
 
     const payloadOpenAI: OpenAI.Chat.ChatCompletionCreateParams = {
       messages: [
