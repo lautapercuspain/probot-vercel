@@ -13,11 +13,12 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
   let fileContents: string
   let filename: string
   let extension: string
-  let depList: string
+  let depList: string = 'Jest, React Testing Library'
 
   const owner = payload.repository.owner.login
   const repo = payload.repository.name
   const pullRequestNumber = payload.pull_request.number
+
   await octokit.request(`POST /repos/${owner}/${repo}/issues/${pullRequestNumber}/comments`, {
     body: messageForNewPRs,
     headers: {
@@ -29,24 +30,24 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
   // console.log(`Branch Name:`, payload.pull_request.head.ref)
 
   //Get the contents of package json.
-  await octokit.rest.repos
-    .getContent({
-      owner,
-      repo,
-      path: 'package.json',
-    })
-    .then((response) => {
-      const content = Buffer.from(response.data.content, 'base64').toString('utf-8')
-      // console.log('content:', content)
+  // await octokit.rest.repos
+  //   .getContent({
+  //     owner,
+  //     repo,
+  //     path: 'package.json',
+  //   })
+  //   .then((response) => {
+  //     const content = Buffer.from(response.data.content, 'base64').toString('utf-8')
+  //     // console.log('content:', content)
 
-      // Parse the package.json content
-      const dependencies = JSON.parse(content).devDependencies
-      //Get the keys, A.k.A: The lib names.
-      depList = Object.keys(dependencies).join(', ')
-    })
-    .catch((error) => {
-      console.error(error)
-    })
+  //     // Parse the package.json content
+  //     const dependencies = JSON.parse(content).devDependencies
+  //     //Get the keys, A.k.A: The lib names.
+  //     depList = Object.keys(dependencies).join(', ')
+  //   })
+  //   .catch((error) => {
+  //     console.error(error)
+  //   })
 
   await getChangedFiles({ owner, repo, pullRequestNumber, octokit }).then(async (changedFiles) => {
     changedFiles.forEach(async (file) => {
@@ -65,7 +66,7 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
       throw new Error('Error fetching data from the API')
     }
     await fileRes.text().then((contents) => {
-      console.log('contents', contents)
+      // console.log('contents', contents)
 
       // console.log('File contents:', fileContents)
 
@@ -123,9 +124,9 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
           },
         })
       } catch (error) {
-        if (error.response) {
-          console.error(`Error! Status: ${error.response.status}. Message: ${error.response.data.message}`)
-        }
+        // if (error.response) {
+        //   console.error(`Error! Status: ${error.response.status}. Message: ${error.response.data.message}`)
+        // }
         console.error(error)
       }
 
