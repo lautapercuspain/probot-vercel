@@ -57,11 +57,11 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
       const [fname, ext] = lastPart.split('.')
       filename = fname
       extension = ext
-      // const fileRes = await fetch(rawUrl)
-      // if (!fileRes.ok) {
-      //   throw new Error('Error fetching data from the API')
-      // }
-      // fileContents = await fileRes.text()
+      const fileRes = await fetch(rawUrl)
+      if (!fileRes.ok) {
+        throw new Error('Error fetching data from the API')
+      }
+      fileContents = await fileRes.text()
     })
 
     // console.log('File contents:', fileContents)
@@ -96,11 +96,11 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
         {
           role: 'user',
           content: `
-              Create a unit test, using the following libs: ${depList}, for the following url: ${rawUrl}.
+              Create at least one unit test, using the following libs: ${depList}, for the following url: ${rawUrl}.
               But don't add explanations or triple backtick to the output.`,
         },
       ],
-      model: 'gpt-4',
+      model: 'gpt-3.5-turbo-0613',
       temperature: 0.9,
     }
 
@@ -111,11 +111,6 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
     console.log('completion:', completion)
 
     if (completion) {
-      const clean = completion.choices[0].message.content
-        .replace('```', '')
-        .replace('javascript', '')
-        .replace('jsx', '')
-        .replace('```', '')
       try {
         await octokit.request(`POST /repos/${owner}/${repo}/issues/${pullRequestNumber}/comments`, {
           body: `A test has been generated for the filename: ${filename}`,
@@ -142,7 +137,10 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
               name: 'Lautaro Gruss',
               email: 'lautapercuspain@gmail.com',
             },
-            content: btoa(clean),
+            content: btoa(
+              completion.choices[0].message.content
+              // prediction.replace('```', '').replace('javascript', '').replace('jsx', '').replace('```', '')
+            ),
             headers: {
               'X-GitHub-Api-Version': '2022-11-28',
               Accept: 'application/vnd.github+json',
