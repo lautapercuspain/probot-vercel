@@ -17,13 +17,13 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
   const owner = payload.repository.owner.login
   const repo = payload.repository.name
   const pullRequestNumber = payload.pull_request.number
-  // await octokit.request(`POST /repos/${owner}/${repo}/issues/${pullRequestNumber}/comments`, {
-  //   body: messageForNewPRs,
-  //   headers: {
-  //     'x-github-api-version': '2022-11-28',
-  //     Accept: 'application/vnd.github+json',
-  //   },
-  // })
+  await octokit.request(`POST /repos/${owner}/${repo}/issues/${pullRequestNumber}/comments`, {
+    body: messageForNewPRs,
+    headers: {
+      'x-github-api-version': '2022-11-28',
+      Accept: 'application/vnd.github+json',
+    },
+  })
 
   // console.log(`Branch Name:`, payload.pull_request.head.ref)
 
@@ -111,6 +111,11 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
     console.log('completion:', completion)
 
     if (completion) {
+      const clean = completion.choices[0].message.content
+        .replace('```', '')
+        .replace('javascript', '')
+        .replace('jsx', '')
+        .replace('```', '')
       try {
         await octokit.request(`POST /repos/${owner}/${repo}/issues/${pullRequestNumber}/comments`, {
           body: `A test has been generated for the filename: ${filename}`,
@@ -137,10 +142,7 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
               name: 'Lautaro Gruss',
               email: 'lautapercuspain@gmail.com',
             },
-            content: btoa(
-              completion.choices[0].message.content.replace('javascript', '').replace('jsx', '').replace('```', '')
-              // prediction.replace('```', '').replace('javascript', '').replace('jsx', '').replace('```', '')
-            ),
+            content: btoa(clean),
             headers: {
               'X-GitHub-Api-Version': '2022-11-28',
               Accept: 'application/vnd.github+json',
