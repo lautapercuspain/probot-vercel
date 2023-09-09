@@ -22,6 +22,7 @@ export default (app: Probot) => {
   //Listen to pull requests events
   app.on(['pull_request.opened', 'pull_request.reopened'], async (context: Context) => {
     handlePullRequestOpened({
+      context,
       openai,
       payload: context.payload,
       octokit: context.octokit,

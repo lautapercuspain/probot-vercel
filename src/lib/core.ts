@@ -5,7 +5,7 @@ import { getChangedFiles } from './utils'
 // import { createAppAuth } from '@octokit/auth-app'
 const messageForNewPRs = "We're analyzing the file."
 
-export async function handlePullRequestOpened({ payload, octokit, openai }) {
+export async function handlePullRequestOpened({ payload, octokit, openai, context }) {
   // let fileRes
   let rawUrl: string
   let payloadOpenAI: OpenAI.Chat.ChatCompletionCreateParams
@@ -24,22 +24,28 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
   //     Accept: 'application/vnd.github+json',
   //   },
   // })
-  ////  context.octokit.issues.createComment(context.issue({ body: 'Hello, World!' }))
+  await context.octokit.issues.createComment(context.issue({ body: messageForNewPRs }))
   // console.log(`Branch Name:`, payload.pull_request.head.ref)
 
   //Get the contents of package json.
-  const response = await octokit.rest.repos.getContent({
-    owner,
-    repo,
-    path: 'package.json',
-  })
-  const content = Buffer.from(response.data.content, 'base64').toString('utf-8')
-  // console.log('content:', content)
+  await octokit.rest.repos
+    .getContent({
+      owner,
+      repo,
+      path: 'package.json',
+    })
+    .then((response) => {
+      const content = Buffer.from(response.data.content, 'base64').toString('utf-8')
+      // console.log('content:', content)
 
-  // Parse the package.json content
-  const dependencies = JSON.parse(content).devDependencies
-  //Get the dep keys, the lib package names.
-  depList = Object.keys(dependencies).join(', ')
+      // Parse the package.json content
+      const dependencies = JSON.parse(content).devDependencies
+      //Get the keys, A.k.A: The lib names.
+      depList = Object.keys(dependencies).join(', ')
+    })
+    .catch((error) => {
+      console.error(error)
+    })
 
   await getChangedFiles({ owner, repo, pullRequestNumber, octokit }).then(async (changedFiles) => {
     changedFiles.forEach(async (file) => {
@@ -54,11 +60,12 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
     })
 
     const fileRes = await fetch(rawUrl)
-
     if (!fileRes.ok) {
       throw new Error('Error fetching data from the API')
     }
     await fileRes.text().then((contents) => {
+      console.log('contents', contents)
+
       // console.log('File contents:', fileContents)
 
       payloadOpenAI = {
