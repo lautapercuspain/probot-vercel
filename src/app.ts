@@ -21,7 +21,7 @@ import { handlePullRequestOpened } from './lib/core'
 export default (app: Probot) => {
   //Listen to pull requests events
   app.on(['pull_request.opened', 'pull_request.reopened'], async (context: Context) => {
-    context.octokit.issues.createComment(context.issue({ body: 'Hello, World!' }))
+    console.log('context.payload,', context.payload)
 
     return handlePullRequestOpened({
       openai,
