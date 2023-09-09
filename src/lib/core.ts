@@ -57,29 +57,20 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
       const [fname, ext] = lastPart.split('.')
       filename = fname
       extension = ext
-      const fileRes = await fetch(rawUrl)
-      if (!fileRes.ok) {
-        throw new Error('Error fetching data from the API')
-      }
-      fileContents = await fileRes.text()
+      // const fileRes = await fetch(rawUrl)
+      // if (!fileRes.ok) {
+      //   throw new Error('Error fetching data from the API')
+      // }
+      // fileContents = await fileRes.text()
     })
 
     // console.log('File contents:', fileContents)
 
-    fileContents = `import React, { useState, useEffect } from "react";
-    const Timer = () => {
-      const [seconds, setSeconds] = useState(0);
-    
-      useEffect(() => {
-        const interval = setInterval(() => {
-          setSeconds((seconds) => seconds + 1);
-        }, 1000);
-        return () => clearInterval(interval);
-      }, []);
-    
-      return <div>{"Timer: \${seconds} seconds"}</div>;
-    };
-    export default Timer;`
+    const cool = `import React, { useState, useEffect } from "react";
+      const Hello = () => {
+        return <div>Hello</div>;
+      };
+      export default Hello;`
 
     const payloadOpenAI: OpenAI.Chat.ChatCompletionCreateParams = {
       messages: [
@@ -111,7 +102,7 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
         {
           role: 'user',
           content: `
-              Create at least three unit tests, using the following libs: ${depList}, for the following code: ${fileContents}.
+              Create at least three unit tests, using the following libs: ${depList}, for the following code: ${cool}.
               But don't add explanations or triple backtick to the output.`,
         },
       ],
