@@ -3,7 +3,7 @@ import { getChangedFiles } from './utils'
 
 // import { Octokit } from '@octokit/core'
 // import { createAppAuth } from '@octokit/auth-app'
-const messageForNewPRs = "We're ..."
+const messageForNewPRs = "We're analyzing..."
 
 export async function handlePullRequestOpened({ payload, octokit, openai }) {
   // let fileRes
@@ -66,7 +66,7 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
     }
     fileContents = await fileRes.text()
 
-    console.log('File contents:', fileContents)
+    // console.log('File contents:', fileContents)
   })
 
   const payloadOpenAI: OpenAI.Chat.ChatCompletionCreateParams = {
