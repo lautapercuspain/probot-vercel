@@ -1,9 +1,9 @@
 import OpenAI from 'openai'
-import { getChangedFiles, getOpenAIPayload } from './utils'
+import { getChangedFiles } from './utils'
 
 // import { Octokit } from '@octokit/core'
 // import { createAppAuth } from '@octokit/auth-app'
-const messageForNewPRs = "We're analyzing the contents of the PR's files in order to create unit tests for it."
+const messageForNewPRs = "We're ..."
 
 export async function handlePullRequestOpened({ payload, octokit, openai }) {
   let fileRes
@@ -62,14 +62,12 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
       const [fname, ext] = lastPart.split('.')
       filename = fname
       extension = ext
+      fileRes = await fetch(rawUrl)
+      if (!fileRes.ok) {
+        throw new Error('Error fetching data from the API')
+      }
+      fileContents = await fileRes.text()
     })
-
-    fileRes = await fetch(rawUrl)
-    if (!fileRes.ok) {
-      throw new Error('Error fetching data from the API')
-    }
-
-    fileContents = await fileRes.text()
 
     console.log('File contents:', fileContents)
 
