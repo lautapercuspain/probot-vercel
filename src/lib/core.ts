@@ -17,13 +17,13 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
   const owner = payload.repository.owner.login
   const repo = payload.repository.name
   const pullRequestNumber = payload.pull_request.number
-  await octokit.request(`POST /repos/${owner}/${repo}/issues/${pullRequestNumber}/comments`, {
-    body: messageForNewPRs,
-    headers: {
-      'x-github-api-version': '2022-11-28',
-      Accept: 'application/vnd.github+json',
-    },
-  })
+  // await octokit.request(`POST /repos/${owner}/${repo}/issues/${pullRequestNumber}/comments`, {
+  //   body: messageForNewPRs,
+  //   headers: {
+  //     'x-github-api-version': '2022-11-28',
+  //     Accept: 'application/vnd.github+json',
+  //   },
+  // })
 
   // console.log(`Branch Name:`, payload.pull_request.head.ref)
 
@@ -138,7 +138,7 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
               email: 'lautapercuspain@gmail.com',
             },
             content: btoa(
-              completion.choices[0].message.content
+              completion.choices[0].message.content.replace('javascript', '').replace('jsx', '').replace('```', '')
               // prediction.replace('```', '').replace('javascript', '').replace('jsx', '').replace('```', '')
             ),
             headers: {
