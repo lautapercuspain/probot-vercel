@@ -19,13 +19,13 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
   const repo = payload.repository.name
   const pullRequestNumber = payload.pull_request.number
 
-  await octokit.request(`POST /repos/${owner}/${repo}/issues/${pullRequestNumber}/comments`, {
-    body: messageForNewPRs,
-    headers: {
-      'x-github-api-version': '2022-11-28',
-      Accept: 'application/vnd.github+json',
-    },
-  })
+  // await octokit.request(`POST /repos/${owner}/${repo}/issues/${pullRequestNumber}/comments`, {
+  //   body: messageForNewPRs,
+  //   headers: {
+  //     'x-github-api-version': '2022-11-28',
+  //     Accept: 'application/vnd.github+json',
+  //   },
+  // })
 
   // console.log(`Branch Name:`, payload.pull_request.head.ref)
 
@@ -65,7 +65,7 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
     if (!fileRes.ok) {
       throw new Error('Error fetching data from the API')
     }
-    fileRes.text().then(async (contents) => {
+    return fileRes.text().then(async (contents) => {
       // console.log('contents', contents)
 
       // console.log('File contents:', fileContents)
