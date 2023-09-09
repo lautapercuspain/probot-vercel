@@ -3,7 +3,7 @@ import { getChangedFiles } from './utils'
 
 // import { Octokit } from '@octokit/core'
 // import { createAppAuth } from '@octokit/auth-app'
-const messageForNewPRs = "We're analyzing the file..."
+const messageForNewPRs = "We're analyzing the file."
 
 export async function handlePullRequestOpened({ payload, octokit, openai }) {
   // let fileRes
@@ -57,11 +57,11 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
       const [fname, ext] = lastPart.split('.')
       filename = fname
       extension = ext
-      const fileRes = await fetch(rawUrl)
-      if (!fileRes.ok) {
-        throw new Error('Error fetching data from the API')
-      }
-      fileContents = await fileRes.text()
+      // const fileRes = await fetch(rawUrl)
+      // if (!fileRes.ok) {
+      //   throw new Error('Error fetching data from the API')
+      // }
+      // fileContents = await fileRes.text()
     })
 
     // console.log('File contents:', fileContents)
@@ -96,11 +96,11 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
         {
           role: 'user',
           content: `
-              Create at least three unit tests, using the following libs: ${depList}, for the following url: ${rawUrl}.
+              Create a unit test, using the following libs: ${depList}, for the following url: ${rawUrl}.
               But don't add explanations or triple backtick to the output.`,
         },
       ],
-      model: 'gpt-4',
+      model: 'gpt-3.5-turbo-0613',
       temperature: 0.9,
     }
 
