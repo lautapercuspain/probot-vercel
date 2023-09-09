@@ -80,14 +80,7 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
   //   })
 
   await getChangedFiles({ owner, repo, pullRequestNumber, octokit }).then(async (changedFiles) => {
-    // console.log('Changed files:')
     changedFiles.forEach(async (file) => {
-      // console.info('File:', file.filename)
-      // console.log('Status:', file.status)
-      // console.log('Additions:', file.additions)
-      // console.log('Deletions:', file.deletions)
-      // console.log('Changes:', file.changes)
-      // console.log('Blob URL:', file.blobUrl)
       rawUrl = file.blobUrl.replace('/blob/', '/raw/')
       console.log('rawUrl:', rawUrl)
 
