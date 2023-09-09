@@ -81,20 +81,20 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
     console.log('completion:', completion)
 
     if (completion) {
-      try {
-        await octokit.request(`POST /repos/${owner}/${repo}/issues/${pullRequestNumber}/comments`, {
-          body: `A test has been generated for the filename: ${filename}`,
-          headers: {
-            'x-github-api-version': '2022-11-28',
-            Accept: 'application/vnd.github+json',
-          },
-        })
-      } catch (error) {
-        if (error.response) {
-          console.error(`Error! Status: ${error.response.status}. Message: ${error.response.data.message}`)
-        }
-        console.error(error)
-      }
+      // try {
+      //   await octokit.request(`POST /repos/${owner}/${repo}/issues/${pullRequestNumber}/comments`, {
+      //     body: `A test has been generated for the filename: ${filename}`,
+      //     headers: {
+      //       'x-github-api-version': '2022-11-28',
+      //       Accept: 'application/vnd.github+json',
+      //     },
+      //   })
+      // } catch (error) {
+      //   if (error.response) {
+      //     console.error(`Error! Status: ${error.response.status}. Message: ${error.response.data.message}`)
+      //   }
+      //   console.error(error)
+      // }
 
       // console.log('lastPart:', lastPart)
       // console.log('extension:', extension)
