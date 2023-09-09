@@ -3,7 +3,7 @@ import { getChangedFiles } from './utils'
 
 // import { Octokit } from '@octokit/core'
 // import { createAppAuth } from '@octokit/auth-app'
-const messageForNewPRs = "We're analyzing the file in order to generate unit tests."
+const messageForNewPRs = "We're analyzing the file."
 
 export async function handlePullRequestOpened({ payload, octokit, openai }) {
   // let fileRes
@@ -100,7 +100,7 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
               But don't add explanations or triple backtick to the output.`,
         },
       ],
-      model: 'gpt-4',
+      model: 'gpt-3.5-turbo-0613',
       temperature: 0.9,
     }
 
@@ -127,11 +127,6 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
       }
 
       try {
-        // const cleanCode = completion.choices[0].message.content
-        //   .replace('```', '')
-        //   .replace('javascript', '')
-        //   .replace('jsx', '')
-        //   .replace('```', '')
         //Ensure we aren't creating a test for a test itself.
         const path = `${relativePath}/${filename.toLowerCase()}.test.${extension}`
         if (extension !== 'test') {
@@ -142,7 +137,10 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
               name: 'Lautaro Gruss',
               email: 'lautapercuspain@gmail.com',
             },
-            content: btoa(completion.choices[0].message.content),
+            content: btoa(
+              completion.choices[0].message.content
+              // prediction.replace('```', '').replace('javascript', '').replace('jsx', '').replace('```', '')
+            ),
             headers: {
               'X-GitHub-Api-Version': '2022-11-28',
               Accept: 'application/vnd.github+json',
