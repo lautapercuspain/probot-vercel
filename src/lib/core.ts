@@ -5,7 +5,7 @@ import { getChangedFiles } from './utils'
 // import { createAppAuth } from '@octokit/auth-app'
 const messageForNewPRs = "We're analyzing the file."
 
-export async function handlePullRequestOpened({ payload, octokit, openai, context }) {
+export async function handlePullRequestOpened({ payload, octokit, openai }) {
   // let fileRes
   let rawUrl: string
   let payloadOpenAI: OpenAI.Chat.ChatCompletionCreateParams
@@ -17,14 +17,14 @@ export async function handlePullRequestOpened({ payload, octokit, openai, contex
   const owner = payload.repository.owner.login
   const repo = payload.repository.name
   const pullRequestNumber = payload.pull_request.number
-  // await octokit.request(`POST /repos/${owner}/${repo}/issues/${pullRequestNumber}/comments`, {
-  //   body: messageForNewPRs,
-  //   headers: {
-  //     'x-github-api-version': '2022-11-28',
-  //     Accept: 'application/vnd.github+json',
-  //   },
-  // })
-  await context.octokit.issues.createComment(context.issue({ body: messageForNewPRs }))
+  await octokit.request(`POST /repos/${owner}/${repo}/issues/${pullRequestNumber}/comments`, {
+    body: messageForNewPRs,
+    headers: {
+      'x-github-api-version': '2022-11-28',
+      Accept: 'application/vnd.github+json',
+    },
+  })
+
   // console.log(`Branch Name:`, payload.pull_request.head.ref)
 
   //Get the contents of package json.
