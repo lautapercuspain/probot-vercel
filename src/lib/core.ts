@@ -6,34 +6,7 @@ import { getChangedFiles } from './utils'
 const messageForNewPRs = "We're analyzing the contents of the PR's files in order to create unit tests for it."
 
 export async function handlePullRequestOpened({ payload, octokit, openai }) {
-  //   console.log(`Received a pull request event for #${payload.pull_request.head.ref}`)
-  //   const ghTotken = process.env.PATGH || ''
-  //   const installationId = payload.installation.id
-  //   clientId: process.env.CLIENT_ID,
-  //   clientSecret: process.env.CLIENT_SECRET,
-  // const octokit = new Octokit({
-  //   authStrategy: createAppAuth,
-  //   auth: {
-  //     installationId: payload.installation.id,
-  //     appId: process.env.APP_ID,
-  //     privateKey: process.env.PRIVATE_KEY,
-  //     clientId: process.env.CLIENT_ID,
-  //     clientSecret: process.env.CLIENT_SECRET,
-  //   },
-  // })
-
-  // const auth = createAppAuth({
-  //   appId: process.env.APP_ID,
-  //   privateKey: process.env.PRIVATE_KEY,
-  //   clientId: process.env.CLIENT_ID,
-  //   clientSecret: process.env.CLIENT_SECRET,
-  // })
-
-  // // Retrieve JSON Web Token (JWT) to authenticate as app
-  // const appAuthentication = await auth({ type: 'app' })
-  // console.log('appAuthentication:', appAuthentication)
-
-  // let path
+  let fileRes
   let rawUrl: string
   let relativePath: string
   let fileContents: string
@@ -89,13 +62,15 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
       const [fname, ext] = lastPart.split('.')
       filename = fname
       extension = ext
-      const fileRes = await fetch(rawUrl)
-      if (!fileRes.ok) {
-        throw new Error('Error fetching data from the API')
-      }
-      fileContents = await fileRes.text()
-      console.log('File contents :', fileContents)
     })
+
+    fileRes = await fetch(rawUrl)
+    if (!fileRes.ok) {
+      throw new Error('Error fetching data from the API')
+    }
+    fileContents = await fileRes.text()
+    console.log('File contents :', fileContents)
+
     const payloadOpenAI: OpenAI.Chat.ChatCompletionCreateParams = {
       messages: [
         {
