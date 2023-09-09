@@ -10,6 +10,7 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
   let rawUrl: string
   let payloadOpenAI: OpenAI.Chat.ChatCompletionCreateParams
   let relativePath: string
+  let fileContents: string
   let filename: string
   let extension: string
   let depList: string
