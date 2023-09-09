@@ -58,12 +58,12 @@ export const getOpenAIPayload = (depList, fileContents) => {
       {
         role: 'user',
         content: `
-            Create at least three unit tests, using the following libs: ${depList}, for the following code: ${fileContents}.
+            Create at least three unit tests, using the following libs: ${depList}, for the following code: "function helloWorld(){ return 'hola'}".
             But don't add explanations or triple backtick to the output.`,
       },
     ],
-    model: 'gpt-3.5-turbo-0613',
-    temperature: 0.9,
+    model: 'gpt-4',
+    temperature: 0.5,
   }
   return payloadOpenAI
 }

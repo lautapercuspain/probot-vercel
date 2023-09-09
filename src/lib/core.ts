@@ -71,11 +71,11 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
 
     fileContents = await fileRes.text()
 
-    console.log('File contents:', fileContents)
+    // console.log('File contents:', fileContents)
 
     const payloadOpenAI = getOpenAIPayload(depList, fileContents)
 
-    console.log('payloadOpenAI:', payloadOpenAI)
+    // console.log('payloadOpenAI:', payloadOpenAI)
 
     const completion: OpenAI.Chat.ChatCompletion = await openai.chat.completions.create(payloadOpenAI)
 
