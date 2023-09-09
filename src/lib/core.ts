@@ -12,7 +12,7 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
   let fileContents: string
   let filename: string
   let extension: string
-  let depList = 'Jest, React Testing Library'
+  let depList: string
 
   const owner = payload.repository.owner.login
   const repo = payload.repository.name
@@ -28,29 +28,29 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
   // console.log(`Branch Name:`, payload.pull_request.head.ref)
 
   //Get the contents of package json.
-  // await octokit.rest.repos
-  //   .getContent({
-  //     owner,
-  //     repo,
-  //     path: 'package.json',
-  //   })
-  //   .then((response) => {
-  //     const content = Buffer.from(response.data.content, 'base64').toString('utf-8')
-  //     // console.log('content:', content)
+  await octokit.rest.repos
+    .getContent({
+      owner,
+      repo,
+      path: 'package.json',
+    })
+    .then((response) => {
+      const content = Buffer.from(response.data.content, 'base64').toString('utf-8')
+      // console.log('content:', content)
 
-  //     // Parse the package.json content
-  //     const dependencies = JSON.parse(content).devDependencies
-  //     //Get the keys, A.k.A: The lib names.
-  //     depList = Object.keys(dependencies).join(', ')
-  //   })
-  //   .catch((error) => {
-  //     console.error(error)
-  //   })
+      // Parse the package.json content
+      const dependencies = JSON.parse(content).devDependencies
+      //Get the keys, A.k.A: The lib names.
+      depList = Object.keys(dependencies).join(', ')
+    })
+    .catch((error) => {
+      console.error(error)
+    })
 
   await getChangedFiles({ owner, repo, pullRequestNumber, octokit }).then(async (changedFiles) => {
     changedFiles.forEach(async (file) => {
       rawUrl = file.blobUrl.replace('/blob/', '/raw/')
-      console.log('rawUrl:', rawUrl)
+      // console.log('rawUrl:', rawUrl)
 
       relativePath = file.filename.split('/').slice(0, -1).join('/')
       const lastPart = file.filename.split('/').pop()
@@ -64,7 +64,7 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
       fileContents = await fileRes.text()
     })
 
-    // console.log('File contents:', fileContents)
+    console.log('File contents:', fileContents)
 
     const payloadOpenAI: OpenAI.Chat.ChatCompletionCreateParams = {
       messages: [
@@ -97,11 +97,11 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
           role: 'user',
           content: `
               Create at least one unit test, using the following libs: ${depList}, for the following url: ${rawUrl}.
-              But don't add explanations or triple backtick to the output.`,
+              Please, do not add comments or explanations to the generated code.`,
         },
       ],
       model: 'gpt-4',
-      temperature: 0.7,
+      temperature: 0.9,
     }
 
     // console.log('payloadOpenAI:', payloadOpenAI)
