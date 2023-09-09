@@ -180,14 +180,14 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
 
       // console.log('lastPart:', lastPart)
       // console.log('extension:', extension)
-      // console.log('filename:', filename)
+      console.log('completion:', completion)
       try {
         //Ensure we aren't creating a test for a test itself.
-        const path = `${relativePath}/${filename.toLowerCase()}.test.js`
+        const path = `${relativePath}/example.test.js`
         if (path) {
           await octokit.request(`PUT /repos/${owner}/${repo}/contents/${path}`, {
             branch: payload.pull_request.head.ref,
-            message: `Add test for ${filename}.`,
+            message: `Add test for example.`,
             committer: {
               name: 'Lautaro Gruss',
               email: 'lautapercuspain@gmail.com',
