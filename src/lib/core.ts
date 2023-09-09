@@ -17,19 +17,18 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
   const owner = payload.repository.owner.login
   const repo = payload.repository.name
   const pullRequestNumber = payload.pull_request.number
-  await octokit
-    .request(`POST /repos/${owner}/${repo}/issues/${pullRequestNumber}/comments`, {
-      body: messageForNewPRs,
-      headers: {
-        'x-github-api-version': '2022-11-28',
-        Accept: 'application/vnd.github+json',
-        // Authorization: `Bearer ${appAuthentication.token}`,
-      },
-    })
-    .then((data) => console.log(data))
+  await octokit.request(`POST /repos/${owner}/${repo}/issues/${pullRequestNumber}/comments`, {
+    body: messageForNewPRs,
+    headers: {
+      'x-github-api-version': '2022-11-28',
+      Accept: 'application/vnd.github+json',
+      // Authorization: `Bearer ${appAuthentication.token}`,
+    },
+  })
+
   // console.log('res:', res)
 
-  console.log(`Branch Name:`, payload.pull_request.head.ref)
+  // console.log(`Branch Name:`, payload.pull_request.head.ref)
   // console.dir(payload);
 
   //Get the contents of package json.
@@ -55,7 +54,7 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
   await getChangedFiles({ owner, repo, pullRequestNumber, octokit }).then(async (changedFiles) => {
     changedFiles.forEach(async (file) => {
       rawUrl = file.blobUrl.replace('/blob/', '/raw/')
-      console.log('rawUrl:', rawUrl)
+      // console.log('rawUrl:', rawUrl)
 
       relativePath = file.filename.split('/').slice(0, -1).join('/')
       const lastPart = file.filename.split('/').pop()
