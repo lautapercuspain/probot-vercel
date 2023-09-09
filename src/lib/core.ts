@@ -64,7 +64,7 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
     if (!fileRes.ok) {
       throw new Error('Error fetching data from the API')
     }
-    fileRes.text().then((contents) => {
+    await fileRes.text().then((contents) => {
       console.log('contents', contents)
 
       // console.log('File contents:', fileContents)
