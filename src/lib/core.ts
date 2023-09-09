@@ -73,7 +73,7 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
 
     console.log('File contents:', fileContents)
 
-    const payloadOpenAI = await getOpenAIPayload(depList, fileContents)
+    const payloadOpenAI = getOpenAIPayload(depList, fileContents)
 
     console.log('payloadOpenAI:', payloadOpenAI)
 
