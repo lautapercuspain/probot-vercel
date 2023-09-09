@@ -65,7 +65,7 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
     if (!fileRes.ok) {
       throw new Error('Error fetching data from the API')
     }
-    await fileRes.text().then((contents) => {
+    fileRes.text().then(async (contents) => {
       // console.log('contents', contents)
 
       // console.log('File contents:', fileContents)
@@ -107,54 +107,54 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
         model: 'gpt-4',
         temperature: 0.9,
       }
-    })
-    // console.log('payloadOpenAI:', payloadOpenAI)
 
-    const completion: OpenAI.Chat.ChatCompletion = await openai.chat.completions.create(payloadOpenAI)
+      const completion: OpenAI.Chat.ChatCompletion = await openai.chat.completions.create(payloadOpenAI)
 
-    console.log('completion:', completion)
+      console.log('completion:', completion)
 
-    if (completion) {
-      try {
-        await octokit.request(`POST /repos/${owner}/${repo}/issues/${pullRequestNumber}/comments`, {
-          body: `A test has been generated for the filename: ${filename}`,
-          headers: {
-            'x-github-api-version': '2022-11-28',
-            Accept: 'application/vnd.github+json',
-          },
-        })
-      } catch (error) {
-        // if (error.response) {
-        //   console.error(`Error! Status: ${error.response.status}. Message: ${error.response.data.message}`)
-        // }
-        console.error(error)
-      }
-
-      try {
-        //Ensure we aren't creating a test for a test itself.
-        const path = `${relativePath}/${filename.toLowerCase()}.test.${extension}`
-        if (extension !== 'test') {
-          await octokit.request(`PUT /repos/${owner}/${repo}/contents/${path}`, {
-            branch: payload.pull_request.head.ref,
-            message: `Add test for ${filename}.`,
-            committer: {
-              name: 'Lautaro Gruss',
-              email: 'lautapercuspain@gmail.com',
-            },
-            content: btoa(
-              completion.choices[0].message.content
-              // prediction.replace('```', '').replace('javascript', '').replace('jsx', '').replace('```', '')
-            ),
+      if (completion) {
+        try {
+          await octokit.request(`POST /repos/${owner}/${repo}/issues/${pullRequestNumber}/comments`, {
+            body: `A test has been generated for the filename: ${filename}`,
             headers: {
-              'X-GitHub-Api-Version': '2022-11-28',
+              'x-github-api-version': '2022-11-28',
               Accept: 'application/vnd.github+json',
             },
           })
-          // console.log('PR updated successfully:', response.data)
+        } catch (error) {
+          // if (error.response) {
+          //   console.error(`Error! Status: ${error.response.status}. Message: ${error.response.data.message}`)
+          // }
+          console.error(error)
         }
-      } catch (error) {
-        console.error('Error updating PR:', error)
+
+        try {
+          //Ensure we aren't creating a test for a test itself.
+          const path = `${relativePath}/${filename.toLowerCase()}.test.${extension}`
+          if (extension !== 'test') {
+            await octokit.request(`PUT /repos/${owner}/${repo}/contents/${path}`, {
+              branch: payload.pull_request.head.ref,
+              message: `Add test for ${filename}.`,
+              committer: {
+                name: 'Lautaro Gruss',
+                email: 'lautapercuspain@gmail.com',
+              },
+              content: btoa(
+                completion.choices[0].message.content
+                // prediction.replace('```', '').replace('javascript', '').replace('jsx', '').replace('```', '')
+              ),
+              headers: {
+                'X-GitHub-Api-Version': '2022-11-28',
+                Accept: 'application/vnd.github+json',
+              },
+            })
+            // console.log('PR updated successfully:', response.data)
+          }
+        } catch (error) {
+          console.error('Error updating PR:', error)
+        }
       }
-    }
+    })
+    // console.log('payloadOpenAI:', payloadOpenAI)
   })
 }
