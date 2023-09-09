@@ -111,22 +111,27 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
     console.log('completion:', completion)
 
     if (completion) {
-      try {
-        await octokit.request(`POST /repos/${owner}/${repo}/issues/${pullRequestNumber}/comments`, {
-          body: `A test has been generated for the filename: ${filename}`,
-          headers: {
-            'x-github-api-version': '2022-11-28',
-            Accept: 'application/vnd.github+json',
-          },
-        })
-      } catch (error) {
-        if (error.response) {
-          console.error(`Error! Status: ${error.response.status}. Message: ${error.response.data.message}`)
-        }
-        console.error(error)
-      }
+      // try {
+      //   await octokit.request(`POST /repos/${owner}/${repo}/issues/${pullRequestNumber}/comments`, {
+      //     body: `A test has been generated for the filename: ${filename}`,
+      //     headers: {
+      //       'x-github-api-version': '2022-11-28',
+      //       Accept: 'application/vnd.github+json',
+      //     },
+      //   })
+      // } catch (error) {
+      //   if (error.response) {
+      //     console.error(`Error! Status: ${error.response.status}. Message: ${error.response.data.message}`)
+      //   }
+      //   console.error(error)
+      // }
 
       try {
+        const cleanCode = completion.choices[0].message.content
+          .replace('```', '')
+          .replace('javascript', '')
+          .replace('jsx', '')
+          .replace('```', '')
         //Ensure we aren't creating a test for a test itself.
         const path = `${relativePath}/${filename.toLowerCase()}.test.${extension}`
         if (extension !== 'test') {
@@ -137,10 +142,7 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
               name: 'Lautaro Gruss',
               email: 'lautapercuspain@gmail.com',
             },
-            content: btoa(
-              completion.choices[0].message.content
-              // prediction.replace('```', '').replace('javascript', '').replace('jsx', '').replace('```', '')
-            ),
+            content: btoa(cleanCode),
             headers: {
               'X-GitHub-Api-Version': '2022-11-28',
               Accept: 'application/vnd.github+json',
