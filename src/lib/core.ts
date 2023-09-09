@@ -100,7 +100,7 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
               But don't add explanations or triple backtick to the output.`,
         },
       ],
-      model: 'gpt-3.5-turbo-0613',
+      model: 'gpt-4',
       temperature: 0.9,
     }
 
