@@ -3,7 +3,7 @@ import { getChangedFiles } from './utils'
 
 // import { Octokit } from '@octokit/core'
 // import { createAppAuth } from '@octokit/auth-app'
-const messageForNewPRs = "We're analyzing..."
+const messageForNewPRs = "We're analyzing the file contents..."
 
 export async function handlePullRequestOpened({ payload, octokit, openai }) {
   // let fileRes
@@ -22,7 +22,6 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
     headers: {
       'x-github-api-version': '2022-11-28',
       Accept: 'application/vnd.github+json',
-      // Authorization: `Bearer ${appAuthentication.token}`,
     },
   })
 
@@ -58,22 +57,20 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
       const [fname, ext] = lastPart.split('.')
       filename = fname
       extension = ext
+      const fileRes = await fetch(rawUrl)
+      if (!fileRes.ok) {
+        throw new Error('Error fetching data from the API')
+      }
+      fileContents = await fileRes.text()
     })
 
-    const fileRes = await fetch(rawUrl)
-    if (!fileRes.ok) {
-      throw new Error('Error fetching data from the API')
-    }
-    fileContents = await fileRes.text()
-
     // console.log('File contents:', fileContents)
-  })
 
-  const payloadOpenAI: OpenAI.Chat.ChatCompletionCreateParams = {
-    messages: [
-      {
-        role: 'system',
-        content: `You are an expert software agent in unit test.
+    const payloadOpenAI: OpenAI.Chat.ChatCompletionCreateParams = {
+      messages: [
+        {
+          role: 'system',
+          content: `You are an expert software agent in unit test.
               Please follow these guilines:
               - Always pass all the props that the component in expecting in all tests.
               - Consistently presume that the component to be tested resides within the identical directory as the generated test.
@@ -95,67 +92,65 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
               - If you use the act method, don't forget to import it from the react testing library lib.
               - To implment clean up after each test you could use, cleanup from react testing library in conjuntion with the afterEach method.
               `,
-      },
-      {
-        role: 'user',
-        content: `
+        },
+        {
+          role: 'user',
+          content: `
               Create at least three unit tests, using the following libs: ${depList}, for the following code: ${fileContents}.
               But don't add explanations or triple backtick to the output.`,
-      },
-    ],
-    model: 'gpt-4',
-    temperature: 0.9,
-  }
-
-  // console.log('payloadOpenAI:', payloadOpenAI)
-
-  const completion: OpenAI.Chat.ChatCompletion = await openai.chat.completions.create(payloadOpenAI)
-
-  console.log('completion:', completion)
-
-  if (completion) {
-    try {
-      await octokit.request(`POST /repos/${owner}/${repo}/issues/${pullRequestNumber}/comments`, {
-        body: `A test has been generated for the filename: ${filename}`,
-        headers: {
-          'x-github-api-version': '2022-11-28',
-          Accept: 'application/vnd.github+json',
         },
-      })
-    } catch (error) {
-      if (error.response) {
-        console.error(`Error! Status: ${error.response.status}. Message: ${error.response.data.message}`)
-      }
-      console.error(error)
+      ],
+      model: 'gpt-4',
+      temperature: 0.9,
     }
 
-    // console.log('lastPart:', lastPart)
-    // console.log('extension:', extension)
-    // console.log('filename:', filename)
-    try {
-      //Ensure we aren't creating a test for a test itself.
-      const path = `${relativePath}/${filename.toLowerCase()}.test.${extension}`
-      if (extension !== 'test') {
-        await octokit.request(`PUT /repos/${owner}/${repo}/contents/${path}`, {
-          branch: payload.pull_request.head.ref,
-          message: `Add test for ${filename}.`,
-          committer: {
-            name: 'Lautaro Gruss',
-            email: 'lautapercuspain@gmail.com',
-          },
-          content: btoa(
-            completion.choices[0].message.content
-            // prediction.replace('```', '').replace('javascript', '').replace('jsx', '').replace('```', '')
-          ),
+    // console.log('payloadOpenAI:', payloadOpenAI)
+
+    const completion: OpenAI.Chat.ChatCompletion = await openai.chat.completions.create(payloadOpenAI)
+
+    console.log('completion:', completion)
+
+    if (completion) {
+      try {
+        await octokit.request(`POST /repos/${owner}/${repo}/issues/${pullRequestNumber}/comments`, {
+          body: `A test has been generated for the filename: ${filename}`,
           headers: {
-            'X-GitHub-Api-Version': '2022-11-28',
+            'x-github-api-version': '2022-11-28',
             Accept: 'application/vnd.github+json',
           },
         })
-        // console.log('PR updated successfully:', response.data)
+      } catch (error) {
+        if (error.response) {
+          console.error(`Error! Status: ${error.response.status}. Message: ${error.response.data.message}`)
+        }
+        console.error(error)
       }
-    } catch (error) {
-      console.error('Error updating PR:', error)
+
+      try {
+        //Ensure we aren't creating a test for a test itself.
+        const path = `${relativePath}/${filename.toLowerCase()}.test.${extension}`
+        if (extension !== 'test') {
+          await octokit.request(`PUT /repos/${owner}/${repo}/contents/${path}`, {
+            branch: payload.pull_request.head.ref,
+            message: `Add test for ${filename}.`,
+            committer: {
+              name: 'Lautaro Gruss',
+              email: 'lautapercuspain@gmail.com',
+            },
+            content: btoa(
+              completion.choices[0].message.content
+              // prediction.replace('```', '').replace('javascript', '').replace('jsx', '').replace('```', '')
+            ),
+            headers: {
+              'X-GitHub-Api-Version': '2022-11-28',
+              Accept: 'application/vnd.github+json',
+            },
+          })
+          // console.log('PR updated successfully:', response.data)
+        }
+      } catch (error) {
+        console.error('Error updating PR:', error)
+      }
     }
-  }
+  })
 }
