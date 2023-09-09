@@ -62,7 +62,7 @@ export const getOpenAIPayload = async (depList, fileContents) => {
             But don't add explanations or triple backtick to the output.`,
       },
     ],
-    model: 'gpt-4',
+    model: 'gpt-3.5-turbo-0613',
     temperature: 0.9,
   }
   return payloadOpenAI
