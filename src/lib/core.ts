@@ -6,7 +6,6 @@ import { getChangedFiles } from './utils'
 const messageForNewPRs = "We're ..."
 
 export async function handlePullRequestOpened({ payload, octokit, openai }) {
-  let fileRes
   let rawUrl: string
   let relativePath: string
   let fileContents: string
@@ -58,15 +57,21 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
       const [fname, ext] = lastPart.split('.')
       filename = fname
       extension = ext
-      fileRes = await fetch(rawUrl)
-      if (!fileRes.ok) {
-        throw new Error('Error fetching data from the API')
-      }
-      fileContents = await fileRes.text()
     })
   })
 
-  console.log('File contents:', fileContents)
+  try {
+    const fileRes = await fetch(rawUrl)
+
+    if (!fileRes.ok) {
+      throw new Error(`Error fetching data from the API: ${fileRes.statusText}`)
+    }
+
+    fileContents = await fileRes.text()
+    console.log('File contents:', fileContents)
+  } catch (error) {
+    console.error('An error occurred fetching file contents:', error.message)
+  }
 
   const payloadOpenAI: OpenAI.Chat.ChatCompletionCreateParams = {
     messages: [
