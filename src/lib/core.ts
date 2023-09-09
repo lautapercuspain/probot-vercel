@@ -34,10 +34,11 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
   // console.log('appAuthentication:', appAuthentication)
 
   // let path
-  let relativePath
-  let fileContents
-  let filename
-  let extension
+  let rawUrl: string
+  let relativePath: string
+  let fileContents: string
+  let filename: string
+  let extension: string
   let depList = 'Jest, React Testing Library'
 
   const owner = payload.repository.owner.login
@@ -87,11 +88,11 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
       // console.log('Deletions:', file.deletions)
       // console.log('Changes:', file.changes)
       // console.log('Blob URL:', file.blobUrl)
-      const rawUrl = file.blobUrl.replace('/blob/', '/raw/')
+      rawUrl = file.blobUrl.replace('/blob/', '/raw/')
       console.log('rawUrl:', rawUrl)
 
       relativePath = file.filename.split('/').slice(0, -1).join('/')
-      let lastPart = file.filename.split('/').pop()
+      const lastPart = file.filename.split('/').pop()
       const [fname, ext] = lastPart.split('.')
       filename = fname
       extension = ext
