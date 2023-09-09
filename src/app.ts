@@ -19,13 +19,13 @@ import { handlePullRequestOpened } from './lib/core'
  * @param {import('probot').Probot} app
  */
 export default (app: Probot) => {
+  //Listen to pull requests events
   app.on(['pull_request.opened', 'pull_request.reopened'], async (context: Context) => {
-    return handlePullRequestOpened({
+    handlePullRequestOpened({
       openai,
       payload: context.payload,
       octokit: context.octokit,
     })
-    // return context.octokit.issues.createComment(context.issue({ body: 'Hello, World!' }))
   })
 
   // This logs any errors that occur.

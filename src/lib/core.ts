@@ -10,7 +10,6 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
   let rawUrl: string
   let payloadOpenAI: OpenAI.Chat.ChatCompletionCreateParams
   let relativePath: string
-  let fileContents: string
   let filename: string
   let extension: string
   let depList: string
@@ -18,35 +17,29 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
   const owner = payload.repository.owner.login
   const repo = payload.repository.name
   const pullRequestNumber = payload.pull_request.number
-  await octokit.request(`POST /repos/${owner}/${repo}/issues/${pullRequestNumber}/comments`, {
-    body: messageForNewPRs,
-    headers: {
-      'x-github-api-version': '2022-11-28',
-      Accept: 'application/vnd.github+json',
-    },
-  })
-
+  // await octokit.request(`POST /repos/${owner}/${repo}/issues/${pullRequestNumber}/comments`, {
+  //   body: messageForNewPRs,
+  //   headers: {
+  //     'x-github-api-version': '2022-11-28',
+  //     Accept: 'application/vnd.github+json',
+  //   },
+  // })
+  ////  context.octokit.issues.createComment(context.issue({ body: 'Hello, World!' }))
   // console.log(`Branch Name:`, payload.pull_request.head.ref)
 
   //Get the contents of package json.
-  await octokit.rest.repos
-    .getContent({
-      owner,
-      repo,
-      path: 'package.json',
-    })
-    .then((response) => {
-      const content = Buffer.from(response.data.content, 'base64').toString('utf-8')
-      // console.log('content:', content)
+  const response = await octokit.rest.repos.getContent({
+    owner,
+    repo,
+    path: 'package.json',
+  })
+  const content = Buffer.from(response.data.content, 'base64').toString('utf-8')
+  // console.log('content:', content)
 
-      // Parse the package.json content
-      const dependencies = JSON.parse(content).devDependencies
-      //Get the keys, A.k.A: The lib names.
-      depList = Object.keys(dependencies).join(', ')
-    })
-    .catch((error) => {
-      console.error(error)
-    })
+  // Parse the package.json content
+  const dependencies = JSON.parse(content).devDependencies
+  //Get the dep keys, the lib package names.
+  depList = Object.keys(dependencies).join(', ')
 
   await getChangedFiles({ owner, repo, pullRequestNumber, octokit }).then(async (changedFiles) => {
     changedFiles.forEach(async (file) => {
@@ -61,12 +54,11 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
     })
 
     const fileRes = await fetch(rawUrl)
+
     if (!fileRes.ok) {
       throw new Error('Error fetching data from the API')
     }
     await fileRes.text().then((contents) => {
-      console.log('contents', contents)
-
       // console.log('File contents:', fileContents)
 
       payloadOpenAI = {
