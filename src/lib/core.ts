@@ -17,13 +17,13 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
   const owner = payload.repository.owner.login
   const repo = payload.repository.name
   const pullRequestNumber = payload.pull_request.number
-  // await octokit.request(`POST /repos/${owner}/${repo}/issues/${pullRequestNumber}/comments`, {
-  //   body: messageForNewPRs,
-  //   headers: {
-  //     'x-github-api-version': '2022-11-28',
-  //     Accept: 'application/vnd.github+json',
-  //   },
-  // })
+  await octokit.request(`POST /repos/${owner}/${repo}/issues/${pullRequestNumber}/comments`, {
+    body: messageForNewPRs,
+    headers: {
+      'x-github-api-version': '2022-11-28',
+      Accept: 'application/vnd.github+json',
+    },
+  })
 
   // console.log(`Branch Name:`, payload.pull_request.head.ref)
 
@@ -96,7 +96,7 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
         {
           role: 'user',
           content: `
-              Create a unit test for the following url: ${rawUrl}, using the following libs: ${depList}.
+              Create a unit test, using the following libs: ${depList}, for the following url: ${rawUrl}.
               But don't add explanations or triple backtick to the output.`,
         },
       ],
