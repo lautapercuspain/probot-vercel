@@ -8,6 +8,7 @@ const messageForNewPRs = "We're analyzing the file."
 export async function handlePullRequestOpened({ payload, octokit, openai }) {
   // let fileRes
   let rawUrl: string
+  let payloadOpenAI: OpenAI.Chat.ChatCompletionCreateParams
   let relativePath: string
   let fileContents: string
   let filename: string
@@ -65,15 +66,14 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
     }
     fileRes.text().then((contents) => {
       console.log('contents', contents)
-    })
 
-    // console.log('File contents:', fileContents)
+      // console.log('File contents:', fileContents)
 
-    const payloadOpenAI: OpenAI.Chat.ChatCompletionCreateParams = {
-      messages: [
-        {
-          role: 'system',
-          content: `You are an expert software agent in unit test.
+      payloadOpenAI = {
+        messages: [
+          {
+            role: 'system',
+            content: `You are an expert software agent in unit test.
               Please follow these guilines:
               - Always pass all the props that the component in expecting in all tests.
               - Consistently presume that the component to be tested resides within the identical directory as the generated test.
@@ -95,18 +95,18 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
               - If you use the act method, don't forget to import it from the react testing library lib.
               - To implment clean up after each test you could use, cleanup from react testing library in conjuntion with the afterEach method.
               `,
-        },
-        {
-          role: 'user',
-          content: `
-              Create at least one unit test, using the following libs: ${depList}, for the following url: ${rawUrl}.
+          },
+          {
+            role: 'user',
+            content: `
+              Create at least one unit test, using the following libs: ${depList}, for the following code: ${contents}.
               Please, do not add comments or explanations to the generated code.`,
-        },
-      ],
-      model: 'gpt-4',
-      temperature: 0.9,
-    }
-
+          },
+        ],
+        model: 'gpt-4',
+        temperature: 0.9,
+      }
+    })
     // console.log('payloadOpenAI:', payloadOpenAI)
 
     const completion: OpenAI.Chat.ChatCompletion = await openai.chat.completions.create(payloadOpenAI)
