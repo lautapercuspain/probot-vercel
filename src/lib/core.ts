@@ -24,26 +24,26 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
   // console.log(`Branch Name:`, payload.pull_request.head.ref)
 
   //Get the contents of package json.
-  await octokit.rest.repos
-    .getContent({
-      owner,
-      repo,
-      path: 'package.json',
-    })
-    .then((response) => {
-      const content = Buffer.from(response.data.content, 'base64').toString('utf-8')
-      // console.log('content:', content)
+  // await octokit.rest.repos
+  //   .getContent({
+  //     owner,
+  //     repo,
+  //     path: 'package.json',
+  //   })
+  //   .then((response) => {
+  //     const content = Buffer.from(response.data.content, 'base64').toString('utf-8')
+  //     // console.log('content:', content)
 
-      // Parse the package.json content
-      const dependencies = JSON.parse(content).devDependencies
-      //Get the keys, A.k.A: The lib names.
-      depList = Object.keys(dependencies).join(', ')
-    })
-    .catch((error) => {
-      console.error(error)
-    })
+  //     // Parse the package.json content
+  //     const dependencies = JSON.parse(content).devDependencies
+  //     //Get the keys, A.k.A: The lib names.
+  //     depList = Object.keys(dependencies).join(', ')
+  //   })
+  //   .catch((error) => {
+  //     console.error(error)
+  //   })
 
-  console.log('depList:', depList)
+  // console.log('depList:', depList)
 
   await getChangedFiles({ owner, repo, pullRequestNumber, octokit }).then(async (changedFiles) => {
     changedFiles.forEach(async (file) => {
@@ -61,8 +61,8 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
     if (!fileRes.ok) {
       throw new Error('Error fetching data from the API')
     }
-    return fileRes.text().then(async (contents) => {
-      // console.log('contents', contents)
+    fileRes.text().then(async (contents) => {
+      console.log('contents:', contents)
 
       // console.log('File contents:', fileContents)
 
@@ -106,16 +106,9 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
 
       const completion: OpenAI.Chat.ChatCompletion = await openai.chat.completions.create(payloadOpenAI)
 
-      try {
-        context.octokit.issues.createComment(
-          context.issue({ body: `A test has been generated for the filename: ${filename}` })
-        )
-      } catch (error) {
-        // if (error.response) {
-        //   console.error(`Error! Status: ${error.response.status}. Message: ${error.response.data.message}`)
-        // }
-        console.error(error)
-      }
+      context.octokit.issues.createComment(
+        context.issue({ body: `A test has been generated for the filename: ${filename}` })
+      )
 
       try {
         //Ensure we aren't creating a test for a test itself.
