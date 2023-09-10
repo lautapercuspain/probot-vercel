@@ -17,7 +17,7 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
   const repo = payload.repository.name
   const pullRequestNumber = payload.pull_request.number
 
-  await context.octokit.issues.createComment(context.issue({ body: messageForNewPRs }))
+  // await context.octokit.issues.createComment(context.issue({ body: messageForNewPRs }))
 
   // const pay = {
   //   messages: [
