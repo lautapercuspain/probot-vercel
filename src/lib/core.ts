@@ -19,7 +19,7 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
   const repo = payload.repository.name
   const pullRequestNumber = payload.pull_request.number
 
-  context.octokit.issues.createComment(context.issue({ body: messageForNewPRs }))
+  // context.octokit.issues.createComment(context.issue({ body: messageForNewPRs }))
 
   // console.log(`Branch Name:`, payload.pull_request.head.ref)
 
@@ -62,7 +62,7 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
       throw new Error('Error fetching data from the API')
     }
     fileRes.text().then(async (contents) => {
-      console.log('contents:', contents)
+      // console.log('contents:', contents)
 
       // console.log('File contents:', fileContents)
 
