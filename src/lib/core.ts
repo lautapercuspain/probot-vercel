@@ -110,31 +110,25 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
         context.issue({ body: `A test has been generated for the filename: ${filename}` })
       )
 
-      try {
-        //Ensure we aren't creating a test for a test itself.
-        const path = `${relativePath}/${filename.toLowerCase()}.test.${extension}`
-        if (extension !== 'test') {
-          await octokit.request(`PUT /repos/${owner}/${repo}/contents/${path}`, {
-            branch: payload.pull_request.head.ref,
-            message: `Add test for ${filename}.`,
-            committer: {
-              name: 'Lautaro Gruss',
-              email: 'lautapercuspain@gmail.com',
-            },
-            content: btoa(
-              completion.choices[0].message.content
-              // prediction.replace('```', '').replace('javascript', '').replace('jsx', '').replace('```', '')
-            ),
-            headers: {
-              'X-GitHub-Api-Version': '2022-11-28',
-              accept: 'application/vnd.github.v3+json',
-            },
-          })
-          // console.log('PR updated successfully:', response.data)
-        }
-      } catch (error) {
-        console.error('Error updating PR:', error)
-      }
+      //Ensure we aren't creating a test for a test itself.
+      const path = `${relativePath}/${filename.toLowerCase()}.test.${extension}`
+
+      await octokit.request(`PUT /repos/${owner}/${repo}/contents/${path}`, {
+        branch: payload.pull_request.head.ref,
+        message: `Add test for ${filename}.`,
+        committer: {
+          name: 'Lautaro Gruss',
+          email: 'lautapercuspain@gmail.com',
+        },
+        content: btoa(
+          completion.choices[0].message.content
+          // prediction.replace('```', '').replace('javascript', '').replace('jsx', '').replace('```', '')
+        ),
+        headers: {
+          'X-GitHub-Api-Version': '2022-11-28',
+          accept: 'application/vnd.github.v3+json',
+        },
+      })
     })
     // console.log('payloadOpenAI:', payloadOpenAI)
   })
