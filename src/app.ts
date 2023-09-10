@@ -24,6 +24,7 @@ export default (app: Probot) => {
     console.log('context.payload,', context.payload)
 
     return handlePullRequestOpened({
+      context,
       openai,
       payload: context.payload,
       octokit: context.octokit,

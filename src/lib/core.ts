@@ -5,7 +5,7 @@ import { getChangedFiles } from './utils'
 // import { createAppAuth } from '@octokit/auth-app'
 const messageForNewPRs = "We're analyzing the file."
 
-export async function handlePullRequestOpened({ payload, octokit, openai }) {
+export async function handlePullRequestOpened({ context, payload, octokit, openai }) {
   // let fileRes
   let rawUrl: string
   let payloadOpenAI: OpenAI.Chat.ChatCompletionCreateParams
@@ -23,9 +23,11 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
   //   body: messageForNewPRs,
   //   headers: {
   //     'x-github-api-version': '2022-11-28',
-  //     Accept: 'application/vnd.github+json',
+  //     accept: 'application/vnd.github.v3+json',
   //   },
   // })
+
+  context.octokit.issues.createComment(context.issue({ body: messageForNewPRs }))
 
   // console.log(`Branch Name:`, payload.pull_request.head.ref)
 
@@ -115,7 +117,7 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
           body: `A test has been generated for the filename: ${filename}`,
           headers: {
             'x-github-api-version': '2022-11-28',
-            Accept: 'application/vnd.github+json',
+            accept: 'application/vnd.github.v3+json',
           },
         })
       } catch (error) {
@@ -142,7 +144,7 @@ export async function handlePullRequestOpened({ payload, octokit, openai }) {
             ),
             headers: {
               'X-GitHub-Api-Version': '2022-11-28',
-              Accept: 'application/vnd.github+json',
+              accept: 'application/vnd.github.v3+json',
             },
           })
           // console.log('PR updated successfully:', response.data)
