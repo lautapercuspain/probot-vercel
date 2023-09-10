@@ -24,26 +24,26 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
   // console.log(`Branch Name:`, payload.pull_request.head.ref)
 
   //Get the contents of package json.
-  // await octokit.rest.repos
-  //   .getContent({
-  //     owner,
-  //     repo,
-  //     path: 'package.json',
-  //   })
-  //   .then((response) => {
-  //     const content = Buffer.from(response.data.content, 'base64').toString('utf-8')
-  //     // console.log('content:', content)
+  await octokit.rest.repos
+    .getContent({
+      owner,
+      repo,
+      path: 'package.json',
+    })
+    .then((response) => {
+      const content = Buffer.from(response.data.content, 'base64').toString('utf-8')
+      // console.log('content:', content)
 
-  //     // Parse the package.json content
-  //     const dependencies = JSON.parse(content).devDependencies
-  //     //Get the keys, A.k.A: The lib names.
-  //     depList = Object.keys(dependencies).join(', ')
-  //   })
-  //   .catch((error) => {
-  //     console.error(error)
-  //   })
+      // Parse the package.json content
+      const dependencies = JSON.parse(content).devDependencies
+      //Get the keys, A.k.A: The lib names.
+      depList = Object.keys(dependencies).join(', ')
+    })
+    .catch((error) => {
+      console.error(error)
+    })
 
-  // console.log('depList:', depList)
+  console.log('depList:', depList)
 
   await getChangedFiles({ owner, repo, pullRequestNumber, octokit }).then(async (changedFiles) => {
     changedFiles.forEach(async (file) => {
