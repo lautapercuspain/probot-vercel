@@ -3,7 +3,7 @@ import { getChangedFiles } from './utils'
 
 // import { Octokit } from '@octokit/core'
 // import { createAppAuth } from '@octokit/auth-app'
-const messageForNewPRs = "We're analyzing the file."
+const messageForNewPRs = "We're analyzing the file contents."
 
 export async function handlePullRequestOpened({ context, payload, octokit, openai }) {
   // let fileRes
@@ -19,37 +19,31 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
   const repo = payload.repository.name
   const pullRequestNumber = payload.pull_request.number
 
-  // await octokit.request(`POST /repos/${owner}/${repo}/issues/${pullRequestNumber}/comments`, {
-  //   body: messageForNewPRs,
-  //   headers: {
-  //     'x-github-api-version': '2022-11-28',
-  //     accept: 'application/vnd.github.v3+json',
-  //   },
-  // })
-
   context.octokit.issues.createComment(context.issue({ body: messageForNewPRs }))
 
   // console.log(`Branch Name:`, payload.pull_request.head.ref)
 
   //Get the contents of package json.
-  // await octokit.rest.repos
-  //   .getContent({
-  //     owner,
-  //     repo,
-  //     path: 'package.json',
-  //   })
-  //   .then((response) => {
-  //     const content = Buffer.from(response.data.content, 'base64').toString('utf-8')
-  //     // console.log('content:', content)
+  await octokit.rest.repos
+    .getContent({
+      owner,
+      repo,
+      path: 'package.json',
+    })
+    .then((response) => {
+      const content = Buffer.from(response.data.content, 'base64').toString('utf-8')
+      // console.log('content:', content)
 
-  //     // Parse the package.json content
-  //     const dependencies = JSON.parse(content).devDependencies
-  //     //Get the keys, A.k.A: The lib names.
-  //     depList = Object.keys(dependencies).join(', ')
-  //   })
-  //   .catch((error) => {
-  //     console.error(error)
-  //   })
+      // Parse the package.json content
+      const dependencies = JSON.parse(content).devDependencies
+      //Get the keys, A.k.A: The lib names.
+      depList = Object.keys(dependencies).join(', ')
+    })
+    .catch((error) => {
+      console.error(error)
+    })
+
+  console.log('depList:', depList)
 
   await getChangedFiles({ owner, repo, pullRequestNumber, octokit }).then(async (changedFiles) => {
     changedFiles.forEach(async (file) => {
@@ -113,13 +107,9 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
       const completion: OpenAI.Chat.ChatCompletion = await openai.chat.completions.create(payloadOpenAI)
 
       try {
-        await octokit.request(`POST /repos/${owner}/${repo}/issues/${pullRequestNumber}/comments`, {
-          body: `A test has been generated for the filename: ${filename}`,
-          headers: {
-            'x-github-api-version': '2022-11-28',
-            accept: 'application/vnd.github.v3+json',
-          },
-        })
+        context.octokit.issues.createComment(
+          context.issue({ body: `A test has been generated for the filename: ${filename}` })
+        )
       } catch (error) {
         // if (error.response) {
         //   console.error(`Error! Status: ${error.response.status}. Message: ${error.response.data.message}`)
