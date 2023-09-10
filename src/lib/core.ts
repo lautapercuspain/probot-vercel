@@ -113,21 +113,31 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
       //Ensure we aren't creating a test for a test itself.
       const path = `${relativePath}/${filename.toLowerCase()}.test.${extension}`
 
-      await octokit.request(`PUT /repos/${owner}/${repo}/contents/${path}`, {
-        branch: payload.pull_request.head.ref,
+      // await octokit.request(`PUT /repos/${owner}/${repo}/contents/${path}`, {
+      //   branch: payload.pull_request.head.ref,
+      //   message: `Add test for ${filename}.`,
+      //   committer: {
+      //     name: 'Lautaro Gruss',
+      //     email: 'lautapercuspain@gmail.com',
+      //   },
+      //   content: btoa(completion.choices[0].message.content),
+      //   // prediction.replace('```', '').replace('javascript', '').replace('jsx', '').replace('```', '')
+      //   headers: {
+      //     'X-GitHub-Api-Version': '2022-11-28',
+      //     accept: 'application/vnd.github.v3+json',
+      //   },
+      // })
+
+      // create a new file
+      await context.octokit.repos.createOrUpdateFileContents({
+        repo,
+        owner,
+        path, // the path to your config file
         message: `Add test for ${filename}.`,
-        committer: {
-          name: 'Lautaro Gruss',
-          email: 'lautapercuspain@gmail.com',
-        },
-        content: btoa(
-          completion.choices[0].message.content
-          // prediction.replace('```', '').replace('javascript', '').replace('jsx', '').replace('```', '')
-        ),
-        headers: {
-          'X-GitHub-Api-Version': '2022-11-28',
-          accept: 'application/vnd.github.v3+json',
-        },
+        // content: Buffer.from('My new file is awesome!').toString('base64'),
+        content: Buffer.from(completion.choices[0].message.content).toString('base64'),
+        // the content of your file, must be base64 encoded
+        branch: payload.pull_request.head.ref, // the branch name we used when creating a Git reference
       })
     })
     // console.log('payloadOpenAI:', payloadOpenAI)
