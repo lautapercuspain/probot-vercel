@@ -1,5 +1,3 @@
-import OpenAI from 'openai'
-
 // These are the dependencies for this file.
 export const getChangedFiles = async ({ owner, repo, pullRequestNumber, octokit }) => {
   try {
@@ -23,6 +21,5 @@ export const getChangedFiles = async ({ owner, repo, pullRequestNumber, octokit 
     return changedFiles
   } catch (error) {
     console.error('Error fetching changed files:', error)
-    return []
   }
 }
