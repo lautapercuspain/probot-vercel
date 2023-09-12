@@ -108,10 +108,6 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
 
     const completion: OpenAI.Chat.ChatCompletion = await openai.chat.completions.create(payloadOpenAI)
 
-    context.octokit.issues.createComment(
-      context.issue({ body: `A test has been generated for the filename: ${filename}` })
-    )
-
     //Ensure we aren't creating a test for a test itself.
     const path = `${relativePath}/${filename.toLowerCase()}.test.${extension}`
 
@@ -126,6 +122,8 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
       // the content of your file, must be base64 encoded
       branch: payload.pull_request.head.ref, // the branch name we used when creating a Git reference
     })
-    await context.octokit.issues.createComment(context.issue({ body: messageForNewPRs }))
+    await context.octokit.issues.createComment(
+      context.issue({ body: `A test has been generated for the filename: ${filename}` })
+    )
   })
 }
