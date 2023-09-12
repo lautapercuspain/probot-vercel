@@ -20,7 +20,7 @@ import { handlePullRequestOpened } from './lib/core'
  */
 export default (app: Probot) => {
   //Listen to pull requests events
-  app.on(['pull_request.opened'], async (context: Context) => {
+  app.on(['pull_request.opened', 'pull_request.reopened', 'pull_request.synchronize'], async (context: Context) => {
     // console.log('context.payload,', context.payload)
 
     return handlePullRequestOpened({

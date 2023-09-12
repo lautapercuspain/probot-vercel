@@ -3,7 +3,7 @@ import { getChangedFiles } from './utils'
 
 // import { Octokit } from '@octokit/core'
 // import { createAppAuth } from '@octokit/auth-app'
-const messageForNewPRs = "We're analyzing the file contents."
+const messageForNewPRs = 'A new test has been generated.'
 
 export async function handlePullRequestOpened({ context, payload, octokit, openai }) {
   // let fileRes
@@ -126,5 +126,6 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
       // the content of your file, must be base64 encoded
       branch: payload.pull_request.head.ref, // the branch name we used when creating a Git reference
     })
+    await context.octokit.issues.createComment(context.issue({ body: messageForNewPRs }))
   })
 }
