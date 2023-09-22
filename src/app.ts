@@ -21,8 +21,6 @@ import { handlePullRequestOpened } from './lib/core'
 export default (app: Probot) => {
   //Listen to pull requests events
   app.on(['pull_request.opened'], async (context: Context) => {
-    console.log('Pull request opened')
-
     return handlePullRequestOpened({
       context,
       openai,
