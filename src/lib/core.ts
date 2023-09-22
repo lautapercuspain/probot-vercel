@@ -10,7 +10,6 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
   let rawUrl: string
   let payloadOpenAI: OpenAI.Chat.ChatCompletionCreateParams
   let relativePath: string
-  let fileRes: any
   let fileContents: string
   let filename: string
   let extension: string
@@ -47,7 +46,6 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
   // console.log('depList:', depList)
 
   await getChangedFiles({ owner, repo, pullRequestNumber, octokit }).then(async (changedFiles) => {
-    //Iterate over changed files
     changedFiles.forEach(async (file) => {
       rawUrl = file.blobUrl.replace('/blob/', '/raw/')
       // console.log('rawUrl:', rawUrl)
@@ -57,22 +55,24 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
       const [fname, ext] = lastPart.split('.')
       filename = fname
       extension = ext
-
-      fileRes = await fetch(rawUrl)
-
-      if (!fileRes.ok) {
-        throw new Error('Error fetching data from the API')
-      }
     })
 
-    fileRes.text().then(async (contents) => {
+    const fileRes = await fetch(rawUrl)
+    if (!fileRes.ok) {
+      throw new Error('Error fetching data from the API')
+    }
+    await fileRes.text().then(async (contents) => {
+      // console.log('contents:', contents)
       fileContents = contents
-      //Build the payload
-      payloadOpenAI = {
-        messages: [
-          {
-            role: 'system',
-            content: `You are an expert software agent in unit test.
+    })
+
+    // console.log('File contents:', fileContents)
+
+    payloadOpenAI = {
+      messages: [
+        {
+          role: 'system',
+          content: `You are an expert software agent in unit test.
               Please follow these guilines:
               - Always pass all the props that the component in expecting in all tests.
               - Consistently presume that the component to be tested resides within the identical directory as the generated test.
@@ -94,17 +94,17 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
               - If you use the act method, don't forget to import it from the react testing library lib.
               - To implment clean up after each test you could use, cleanup from react testing library in conjuntion with the afterEach method.
               `,
-          },
-          {
-            role: 'user',
-            content: `
-              Create at one unit test, using the following libs: ${depList}, for the text contents of this file URL: ${contents}.`,
-          },
-        ],
-        model: 'gpt-4',
-        temperature: 0.9,
-      }
-    })
+        },
+        {
+          role: 'user',
+          content: `
+              Create at least one unit test, using the following libs: ${depList}, for the following code: ${fileContents}.
+              Please, do not add comments or explanations to the generated code.`,
+        },
+      ],
+      model: 'gpt-4',
+      temperature: 0.9,
+    }
 
     const completion: OpenAI.Chat.ChatCompletion = await openai.chat.completions.create(payloadOpenAI)
 
@@ -112,7 +112,7 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
     const path = `${relativePath}/${filename.toLowerCase()}.test.${extension}`
 
     // create a new file
-    return context.octokit.repos.createOrUpdateFileContents({
+    await context.octokit.repos.createOrUpdateFileContents({
       repo,
       owner,
       path, // the path to your config file
@@ -122,5 +122,8 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
       // the content of your file, must be base64 encoded
       branch: payload.pull_request.head.ref, // the branch name we used when creating a Git reference
     })
+    await context.octokit.issues.createComment(
+      context.issue({ body: `A test has been generated for the filename: ${filename}` })
+    )
   })
 }
