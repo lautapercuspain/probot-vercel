@@ -3,7 +3,7 @@ import { getChangedFiles } from './utils'
 
 // import { Octokit } from '@octokit/core'
 // import { createAppAuth } from '@octokit/auth-app'
-const messageForNewPRs = 'A new test has been generated.'
+const messageForNewPRs = `The files' contents are under analysis for test generation.`
 
 export async function handlePullRequestOpened({ context, payload, octokit, openai }) {
   // let fileRes
@@ -19,7 +19,7 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
   const repo = payload.repository.name
   const pullRequestNumber = payload.pull_request.number
 
-  // context.octokit.issues.createComment(context.issue({ body: messageForNewPRs }))
+  await context.octokit.issues.createComment(context.issue({ body: messageForNewPRs }))
 
   // console.log(`Branch Name:`, payload.pull_request.head.ref)
 
