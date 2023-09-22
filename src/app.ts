@@ -20,7 +20,7 @@ import { handlePullRequestOpened } from './lib/core'
  */
 export default (app: Probot) => {
   //Listen to pull requests events
-  app.on(['pull_request.opened'], async (context: Context) => {
+  app.on(['pull_request.opened', 'pull_request.reopened'], async (context: Context) => {
     return handlePullRequestOpened({
       context,
       openai,
@@ -30,11 +30,11 @@ export default (app: Probot) => {
   })
 
   // This logs any errors that occur.
-  app.webhooks.onError((error) => {
-    if (error.name === 'AggregateError') {
-      console.error(`Error processing request: ${error.event}`)
-    } else {
-      console.error(error)
-    }
-  })
+  // app.webhooks.onError((error) => {
+  //   if (error.name === 'AggregateError') {
+  //     console.error(`Error processing request: ${error.event}`)
+  //   } else {
+  //     console.error(error)
+  //   }
+  // })
 }
