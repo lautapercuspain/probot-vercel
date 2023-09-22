@@ -24,7 +24,7 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
   // console.log(`Branch Name:`, payload.pull_request.head.ref)
 
   //Get the contents of package json.
-  octokit.rest.repos
+  await octokit.rest.repos
     .getContent({
       owner,
       repo,
@@ -45,7 +45,8 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
 
   // console.log('depList:', depList)
 
-  getChangedFiles({ owner, repo, pullRequestNumber, octokit }).then(async (changedFiles) => {
+  return getChangedFiles({ owner, repo, pullRequestNumber, octokit }).then(async (changedFiles) => {
+    //Iterate over changed files
     changedFiles.forEach(async (file) => {
       rawUrl = file.blobUrl.replace('/blob/', '/raw/')
       // console.log('rawUrl:', rawUrl)
@@ -58,15 +59,13 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
     })
 
     const fileRes = await fetch(rawUrl)
+
     if (!fileRes.ok) {
       throw new Error('Error fetching data from the API')
     }
     fileRes.text().then(async (contents) => {
-      // console.log('contents:', contents)
       fileContents = contents
     })
-
-    // console.log('File contents:', fileContents)
 
     payloadOpenAI = {
       messages: [
@@ -112,7 +111,7 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
     const path = `${relativePath}/${filename.toLowerCase()}.test.${extension}`
 
     // create a new file
-    await context.octokit.repos.createOrUpdateFileContents({
+    return context.octokit.repos.createOrUpdateFileContents({
       repo,
       owner,
       path, // the path to your config file
@@ -122,8 +121,5 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
       // the content of your file, must be base64 encoded
       branch: payload.pull_request.head.ref, // the branch name we used when creating a Git reference
     })
-    await context.octokit.issues.createComment(
-      context.issue({ body: `A test has been generated for the filename: ${filename}` })
-    )
   })
 }
