@@ -63,7 +63,7 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
         throw new Error('Error fetching data from the API')
       }
 
-      await fileRes.text().then(async (contents) => {
+      fileRes.text().then(async (contents) => {
         fileContents = contents
         //Build the payload
         payloadOpenAI = {
@@ -96,7 +96,7 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
             {
               role: 'user',
               content: `
-              Create at one unit test, using the following libs: ${depList}, for the text contents of this file URL: ${rawUrl}.`,
+              Create at one unit test, using the following libs: ${depList}, for the text contents of this file URL: ${contents}.`,
             },
           ],
           model: 'gpt-4',
