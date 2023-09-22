@@ -19,7 +19,7 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
   const repo = payload.repository.name
   const pullRequestNumber = payload.pull_request.number
 
-  context.octokit.issues.createComment(context.issue({ body: messageForNewPRs }))
+  await context.octokit.issues.createComment(context.issue({ body: messageForNewPRs }))
 
   // console.log(`Branch Name:`, payload.pull_request.head.ref)
 
@@ -112,7 +112,7 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
     const path = `${relativePath}/${filename.toLowerCase()}.test.${extension}`
 
     // create a new file
-    context.octokit.repos.createOrUpdateFileContents({
+    await context.octokit.repos.createOrUpdateFileContents({
       repo,
       owner,
       path, // the path to your config file
@@ -122,7 +122,7 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
       // the content of your file, must be base64 encoded
       branch: payload.pull_request.head.ref, // the branch name we used when creating a Git reference
     })
-    context.octokit.issues.createComment(
+    await context.octokit.issues.createComment(
       context.issue({ body: `A test has been generated for the filename: ${filename}` })
     )
   })
