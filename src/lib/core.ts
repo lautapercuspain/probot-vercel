@@ -65,13 +65,12 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
     }
     fileRes.text().then(async (contents) => {
       fileContents = contents
-    })
-
-    payloadOpenAI = {
-      messages: [
-        {
-          role: 'system',
-          content: `You are an expert software agent in unit test.
+      //Create payload
+      payloadOpenAI = {
+        messages: [
+          {
+            role: 'system',
+            content: `You are an expert software agent in unit test.
               Please follow these guilines:
               - Always pass all the props that the component in expecting in all tests.
               - Consistently presume that the component to be tested resides within the identical directory as the generated test.
@@ -93,33 +92,34 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
               - If you use the act method, don't forget to import it from the react testing library lib.
               - To implment clean up after each test you could use, cleanup from react testing library in conjuntion with the afterEach method.
               `,
-        },
-        {
-          role: 'user',
-          content: `
+          },
+          {
+            role: 'user',
+            content: `
               Create at least one unit test, using the following libs: ${depList}, for the following code: ${fileContents}.
-              Please, do not add comments or explanations to the generated code.`,
-        },
-      ],
-      model: 'gpt-4',
-      temperature: 0.9,
-    }
+              Please, do not add comments or explanations to the generated code. Only output code.`,
+          },
+        ],
+        model: 'gpt-4',
+        temperature: 0.9,
+      }
 
-    const completion: OpenAI.Chat.ChatCompletion = await openai.chat.completions.create(payloadOpenAI)
+      const completion: OpenAI.Chat.ChatCompletion = await openai.chat.completions.create(payloadOpenAI)
 
-    //Ensure we aren't creating a test for a test itself.
-    const path = `${relativePath}/${filename.toLowerCase()}.test.${extension}`
+      //Ensure we aren't creating a test for a test itself.
+      const path = `${relativePath}/${filename.toLowerCase()}.test.${extension}`
 
-    // create a new file
-    return context.octokit.repos.createOrUpdateFileContents({
-      repo,
-      owner,
-      path, // the path to your config file
-      message: `Test added for filename: ${filename}.`,
-      // content: Buffer.from('My new file is awesome!').toString('base64'),
-      content: Buffer.from(completion.choices[0].message.content).toString('base64'),
-      // the content of your file, must be base64 encoded
-      branch: payload.pull_request.head.ref, // the branch name we used when creating a Git reference
+      // create a new file
+      return context.octokit.repos.createOrUpdateFileContents({
+        repo,
+        owner,
+        path, // the path to your config file
+        message: `Test added for filename: ${filename}.`,
+        // content: Buffer.from('My new file is awesome!').toString('base64'),
+        content: Buffer.from(completion.choices[0].message.content).toString('base64'),
+        // the content of your file, must be base64 encoded
+        branch: payload.pull_request.head.ref, // the branch name we used when creating a Git reference
+      })
     })
   })
 }
