@@ -10,6 +10,7 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
   let rawUrl: string
   let payloadOpenAI: OpenAI.Chat.ChatCompletionCreateParams
   let relativePath: string
+  let fileRes: any
   let fileContents: string
   let filename: string
   let extension: string
@@ -57,20 +58,21 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
       filename = fname
       extension = ext
 
-      const fileRes = await fetch(rawUrl)
+      fileRes = await fetch(rawUrl)
 
       if (!fileRes.ok) {
         throw new Error('Error fetching data from the API')
       }
+    })
 
-      fileRes.text().then(async (contents) => {
-        fileContents = contents
-        //Build the payload
-        payloadOpenAI = {
-          messages: [
-            {
-              role: 'system',
-              content: `You are an expert software agent in unit test.
+    fileRes.text().then(async (contents) => {
+      fileContents = contents
+      //Build the payload
+      payloadOpenAI = {
+        messages: [
+          {
+            role: 'system',
+            content: `You are an expert software agent in unit test.
               Please follow these guilines:
               - Always pass all the props that the component in expecting in all tests.
               - Consistently presume that the component to be tested resides within the identical directory as the generated test.
@@ -92,17 +94,16 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
               - If you use the act method, don't forget to import it from the react testing library lib.
               - To implment clean up after each test you could use, cleanup from react testing library in conjuntion with the afterEach method.
               `,
-            },
-            {
-              role: 'user',
-              content: `
+          },
+          {
+            role: 'user',
+            content: `
               Create at one unit test, using the following libs: ${depList}, for the text contents of this file URL: ${contents}.`,
-            },
-          ],
-          model: 'gpt-4',
-          temperature: 0.9,
-        }
-      })
+          },
+        ],
+        model: 'gpt-4',
+        temperature: 0.9,
+      }
     })
 
     const completion: OpenAI.Chat.ChatCompletion = await openai.chat.completions.create(payloadOpenAI)
