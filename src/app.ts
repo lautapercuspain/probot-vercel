@@ -30,11 +30,11 @@ export default (app: Probot) => {
   })
 
   // This logs any errors that occur.
-  // app.webhooks.onError((error) => {
-  //   if (error.name === 'AggregateError') {
-  //     console.error(`Error processing request: ${error.event}`)
-  //   } else {
-  //     console.error(error)
-  //   }
-  // })
+  app.webhooks.onError((error) => {
+    if (error.name === 'AggregateError') {
+      console.error(`Error processing request: ${error.event}`)
+    } else {
+      console.error(error)
+    }
+  })
 }
