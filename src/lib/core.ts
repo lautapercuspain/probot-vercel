@@ -19,10 +19,6 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
   const repo = payload.repository.name
   const pullRequestNumber = payload.pull_request.number
 
-  await context.octokit.issues.createComment(context.issue({ body: messageForNewPRs }))
-
-  // console.log(`Branch Name:`, payload.pull_request.head.ref)
-
   //Get the contents of package json.
   await octokit.rest.repos
     .getContent({
@@ -104,7 +100,7 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
       const completion: OpenAI.Chat.ChatCompletion = await openai.chat.completions.create(payloadB)
 
       //Ensure we aren't creating a test for a test itself.
-      const path = `${relativePath}/${filename.toLowerCase()}.demo.${extension}`
+      const path = `${relativePath}/${filename.toLowerCase()}.test.${extension}`
 
       await context.octokit.repos.createOrUpdateFileContents({
         repo,
@@ -116,8 +112,9 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
         // the content of your file, must be base64 encoded
         branch: payload.pull_request.head.ref, // the branch name we used when creating a Git reference
       })
+
       await context.octokit.issues.createComment(
-        context.issue({ body: `A demo test has been generated for the filename: ${filename}` })
+        context.issue({ body: `A test has been generated for the filename: ${filename}` })
       )
     })
   })
