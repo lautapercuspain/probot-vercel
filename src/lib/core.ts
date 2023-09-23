@@ -7,6 +7,7 @@ const messageForNewPRs = `The files' contents are under analysis for test genera
 
 export async function handlePullRequestOpened({ context, payload, octokit, openai }) {
   // let fileRes
+  let generated = false
   let rawUrl: string
   let payloadOpenAI: OpenAI.Chat.ChatCompletionCreateParams
   let relativePath: string
@@ -116,18 +117,19 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
         // the content of your file, must be base64 encoded
         branch: payload.pull_request.head.ref, // the branch name we used when creating a Git reference
       })
+      generated = true
       await context.octokit.issues.createComment(
         context.issue({ body: `A new test has been generated for the filename: ${filename}` })
       )
     })
 
-    // console.log('File contents:', fileContents)
-
-    payloadOpenAI = {
-      messages: [
-        {
-          role: 'system',
-          content: `You are an expert software agent in unit test.
+    // Just in case.
+    if (!generated) {
+      payloadOpenAI = {
+        messages: [
+          {
+            role: 'system',
+            content: `You are an expert software agent in unit test.
               Follow these guilines to the letter:
               - Output code only.
               - Always pass all the props that the component in expecting in all tests.
@@ -150,35 +152,36 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
               - If you use the act method, don't forget to import it from the react testing library lib.
               - To implment clean up after each test you could use, cleanup from react testing library in conjuntion with the afterEach method.
               `,
-        },
-        {
-          role: 'user',
-          content: `
+          },
+          {
+            role: 'user',
+            content: `
               Create at least one unit test, using the following libs: ${depList}, for the following code: ${fileContents}.`,
-        },
-      ],
-      model: 'gpt-4',
-      temperature: 0.9,
+          },
+        ],
+        model: 'gpt-4',
+        temperature: 0.9,
+      }
+
+      const completion: OpenAI.Chat.ChatCompletion = await openai.chat.completions.create(payloadOpenAI)
+
+      //Ensure we aren't creating a test for a test itself.
+      const path = `${relativePath}/${filename.toLowerCase()}.test.${extension}`
+
+      // create a new file
+      await context.octokit.repos.createOrUpdateFileContents({
+        repo,
+        owner,
+        path, // the path to your config file
+        message: `Test added for filename: ${filename}.`,
+        // content: Buffer.from('My new file is awesome!').toString('base64'),
+        content: Buffer.from(completion.choices[0].message.content).toString('base64'),
+        // the content of your file, must be base64 encoded
+        branch: payload.pull_request.head.ref, // the branch name we used when creating a Git reference
+      })
+      await context.octokit.issues.createComment(
+        context.issue({ body: `A test has been generated for the filename: ${filename}` })
+      )
     }
-
-    const completion: OpenAI.Chat.ChatCompletion = await openai.chat.completions.create(payloadOpenAI)
-
-    //Ensure we aren't creating a test for a test itself.
-    const path = `${relativePath}/${filename.toLowerCase()}.test.${extension}`
-
-    // create a new file
-    await context.octokit.repos.createOrUpdateFileContents({
-      repo,
-      owner,
-      path, // the path to your config file
-      message: `Test added for filename: ${filename}.`,
-      // content: Buffer.from('My new file is awesome!').toString('base64'),
-      content: Buffer.from(completion.choices[0].message.content).toString('base64'),
-      // the content of your file, must be base64 encoded
-      branch: payload.pull_request.head.ref, // the branch name we used when creating a Git reference
-    })
-    await context.octokit.issues.createComment(
-      context.issue({ body: `A test has been generated for the filename: ${filename}` })
-    )
   })
 }
