@@ -67,7 +67,7 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
           role: 'system',
           content: `You are an expert software agent in unit test.
               Follow these guilines to the letter:
-              - Output code only.
+              - Output the test code only, without additional explanations.
               - Always pass all the props that the component in expecting in all tests.
               - Consistently presume that the component to be tested resides within the identical directory as the generated test.
               - Don't use getByTestId if the passed component don't support it.
