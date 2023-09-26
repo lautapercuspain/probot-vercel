@@ -1,5 +1,5 @@
 import OpenAI from 'openai'
-import { getChangedFiles } from './utils'
+import { getChangedFiles, removeCharacters } from './utils'
 
 // import { Octokit } from '@octokit/core'
 // import { createAppAuth } from '@octokit/auth-app'
@@ -37,7 +37,8 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
       // Parse the package.json content
       const dependencies = JSON.parse(content).devDependencies
       //Get the keys, A.k.A: The lib names.
-      depList = Object.keys(dependencies).join(', ')
+      depList = depList ?? Object.keys(dependencies).join(', ')
+      console.log('depList:', depList)
     })
     .catch((error) => {
       console.error(error)
@@ -46,10 +47,11 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
   // console.log('depList:', depList)
 
   await getChangedFiles({ owner, repo, pullRequestNumber, octokit }).then(async (changedFiles) => {
-    changedFiles.forEach(async (file) => {
-      rawUrl = file.blobUrl.replace('/blob/', '/raw/')
-      // console.log('rawUrl:', rawUrl)
-
+    // console.log('changedFiles:', changedFiles)
+    changedFiles?.map(async (file) => {
+      rawUrl = file.contents_url
+      // console.info('rawUrl:', rawUrl)
+      fileContents = file.patch
       relativePath = file.filename.split('/').slice(0, -1).join('/')
       const lastPart = file.filename.split('/').pop()
       const [fname, ext] = lastPart.split('.')
@@ -57,16 +59,7 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
       extension = ext
     })
 
-    const fileRes = await fetch(rawUrl)
-    if (!fileRes.ok) {
-      throw new Error('Error fetching data from the API')
-    }
-    await fileRes.text().then(async (contents) => {
-      // console.log('contents:', contents)
-      fileContents = contents
-    })
-
-    // console.log('File contents:', fileContents)
+    const filteredContent = removeCharacters(fileContents)
 
     payloadOpenAI = {
       messages: [
@@ -99,7 +92,7 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
         {
           role: 'user',
           content: `
-              Create at least one unit test, using the following libs: ${depList}, for the following code: ${fileContents}.`,
+              Create at least one unit test, using the following libs: ${depList}, for the following code: ${filteredContent}.`,
         },
       ],
       model: 'gpt-3.5-turbo-0613',
@@ -107,6 +100,7 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
     }
 
     const completion: OpenAI.Chat.ChatCompletion = await openai.chat.completions.create(payloadOpenAI)
+    console.log('completion:', completion)
 
     //Ensure we aren't creating a test for a test itself.
     const path = `${relativePath}/${filename.toLowerCase()}.test.${extension}`
