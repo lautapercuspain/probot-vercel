@@ -1,25 +1,29 @@
-# Probot & Vercel example
+# Probot & Open AI App
 
-This repository is an example of how to deploy the "Hello, World" of probot apps to [Vercel](https://vercel.com).
+This repository is using [Probot](https://probot.github.io/) and the Open AI API
+
+# Create your Open AI key
+
+You can go [here](https://platform.openai.com/api-keys/) to generate your Open AI key.
 
 ## Local setup
 
 Install dependencies
 
 ```
-npm install
+yarn install
 ```
 
 Build the project
 
 ```
-npm run build
+yarn run build
 ```
 
 Start the server
 
 ```
-npm start
+yarn start
 ```
 
 Follow the instructions to register a new GitHub app.
@@ -29,8 +33,10 @@ Follow the instructions to register a new GitHub app.
 The app is continuously deployed using [Vercel's GitHub app](https://github.com/apps/vercel).
 
 ### Considerations
-- Make sure you configure [the environment variables for your GitHub App](https://probot.github.io/docs/configuration/) in Vercel. You can read more about how to do it in [their docs](https://vercel.com/docs/concepts/projects/environment-variables).
-- Vercel [expects to find your lambda functions under `/api` folder]([url](https://vercel.com/docs/concepts/functions/serverless-functions#deploying-serverless-functions)). Make sure your functions are placed there and double check Vercel detected your Lambda Functions during the deployment process by checking the logs:
+
+- Make sure you configure [the environment variables for your GitHub App](https://probot.github.io/docs/configuration/)
+
+- Vercel [expects to find your lambda functions under `/api` folder](<[url](https://vercel.com/docs/concepts/functions/serverless-functions#deploying-serverless-functions)>). Make sure your functions are placed there and double check Vercel detected your Lambda Functions during the deployment process by checking the logs:
 
 ![image](https://user-images.githubusercontent.com/2574275/187179364-b0019f95-be41-462a-97d5-facf4de39095.png)
 
