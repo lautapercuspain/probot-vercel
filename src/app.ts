@@ -8,7 +8,7 @@ if (!process.env.OPENAI_API_KEY) {
 const openAIKey = process.env.OPENAI_API_KEY
 
 const openai = new OpenAI({
-  apiKey: openAIKey, // defaults to process.env["OPENAI_API_KEY"]
+  apiKey: openAIKey,
 })
 
 //   //auth

@@ -1,13 +1,11 @@
 import OpenAI from 'openai'
 import { getChangedFiles, removeCharacters } from './utils'
 
-// import { Octokit } from '@octokit/core'
-// import { createAppAuth } from '@octokit/auth-app'
 const messageForNewPRs = `The files' contents are under analysis for test generation.`
 
 export async function handlePullRequestOpened({ context, payload, octokit, openai }) {
-  // let fileRes
   let rawUrl: string
+  let exportStrategy: string = ''
   let payloadOpenAI: OpenAI.Chat.ChatCompletionCreateParams
   let relativePath: string
   let fileContents: string
@@ -21,8 +19,6 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
 
   await context.octokit.issues.createComment(context.issue({ body: messageForNewPRs }))
 
-  // console.log(`Branch Name:`, payload.pull_request.head.ref)
-
   //Get the contents of package json.
   await octokit.rest.repos
     .getContent({
@@ -32,25 +28,37 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
     })
     .then((response) => {
       const content = Buffer.from(response.data.content, 'base64').toString('utf-8')
-      // console.log('content:', content)
 
       // Parse the package.json content
       const dependencies = JSON.parse(content).devDependencies
-      //Get the keys, A.k.A: The lib names.
+      //Get the testing lib names.
       depList = depList ?? Object.keys(dependencies).join(', ')
-      console.log('depList:', depList)
     })
     .catch((error) => {
       console.error(error)
     })
 
-  // console.log('depList:', depList)
+  await octokit.rest.repos
+    .getContent({
+      owner,
+      repo,
+      path: 'test-utils.tsx',
+    })
+    .then((response) => {
+      const testUtils = Buffer.from(response.data.content, 'base64').toString('utf-8')
+      if (testUtils.length > 0) {
+        //Instruct the bot the export strategy
+        exportStrategy = `Export all the React Testing Library methods from this path: @/test-utils. 
+        Use jest.fn() method if for mocking any module in the tests and please, don't use async/await syntax.`
+      }
+    })
+    .catch((error) => {
+      console.error(error)
+    })
 
   await getChangedFiles({ owner, repo, pullRequestNumber, octokit }).then(async (changedFiles) => {
-    // console.log('changedFiles:', changedFiles)
     changedFiles?.map(async (file) => {
       rawUrl = file.contents_url
-      // console.info('rawUrl:', rawUrl)
       fileContents = file.patch
       relativePath = file.filename.split('/').slice(0, -1).join('/')
       const lastPart = file.filename.split('/').pop()
@@ -65,13 +73,12 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
       messages: [
         {
           role: 'system',
-          content: `You are an expert software agent in unit test.
-              Follow these guilines to the letter:
+          content: `You are an expert software agent in unit test. Follow the following guilines, strictly:
               - Output the test code only, without additional explanations.
               - Always pass all the props that the component in expecting in all tests.
               - Consistently presume that the component to be tested resides within the identical directory as the generated test.
-              - Don't use getByTestId if the passed component don't support it.
-              - Always use the waitFor method from the testing-library/react package, and don't forget to import that in the testing code.
+              - Do not use getByTestId, use other react testing library methods to find elements.
+              - Always use the waitFor method from the react testing library package, without adding the await keyword in front of it.
               - Try to use the getByRole method, if target element is a generic role, other wise use the getByText method to find elements when you see fit.
                 Examples: Given the following html: <a href="/about">About</a>, if could do this inside a test:
                 import {render, screen} from '@testing-library/react'
@@ -86,6 +93,7 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
               - It's important to ensure that each test case starts with a clean and isolated state.
               - Ensure that each test is isolated from the others. One test's behavior shouldn't affect another test's outcome.
               - If you use the act method, don't forget to import it from the react testing library lib.
+              - Be sure to ${exportStrategy}
               - To implment clean up after each test you could use, cleanup from react testing library in conjuntion with the afterEach method.
               `,
         },
@@ -96,11 +104,10 @@ export async function handlePullRequestOpened({ context, payload, octokit, opena
         },
       ],
       model: 'gpt-3.5-turbo-0613',
-      temperature: 0.9,
+      temperature: 0.5,
     }
 
     const completion: OpenAI.Chat.ChatCompletion = await openai.chat.completions.create(payloadOpenAI)
-    console.log('completion:', completion)
 
     //Ensure we aren't creating a test for a test itself.
     const path = `${relativePath}/${filename.toLowerCase()}.test.${extension}`
