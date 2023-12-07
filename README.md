@@ -6,6 +6,10 @@ This repository is using [Probot](https://probot.github.io/) and the Open AI API
 
 You can go [here](https://platform.openai.com/api-keys/) to generate your Open AI key.
 
+# Local development
+
+In this [link](https://probot.github.io/docs/development/) you can find instructions for local development.
+
 ## Local setup
 
 Install dependencies
